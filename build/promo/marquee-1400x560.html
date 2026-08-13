@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>marquee 1400x560</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 1400px;
+        height: 560px;
+        overflow: hidden;
+      }
+      body {
+        background-image: linear-gradient(100deg, rgba(15,14,13,0.95) 0%, rgba(17,16,15,0.88) 45%, rgba(22,18,14,0.66) 100%), url('bg-marquee.png'); background-size: cover; background-position: center;
+        font-family: Mulish, Arial, sans-serif;
+        color: #fff;
+        display: grid;
+        grid-template-columns: 1.15fr 1fr;
+        align-items: center;
+        gap: 60px;
+        padding: 0 76px;
+      }
+      /* Grid children default to min-width:auto, so a wide child can push the
+         track past the canvas. That is what clipped the panel's copy button. */
+      body > * {
+        min-width: 0;
+      }
+      .mark {
+        display: inline-grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 11px;
+        background: #f37333;
+        color: #161616;
+        font-weight: 800;
+        font-size: 27px;
+        margin-bottom: 22px;
+      }
+      h1 {
+        margin: 0 0 18px;
+        font-size: 56px;
+        line-height: 1.08;
+        letter-spacing: -0.025em;
+        font-weight: 800;
+        max-width: 15ch;
+      }
+      h1 em {
+        font-style: normal;
+        color: #f37333;
+      }
+      p {
+        margin: 0 0 26px;
+        color: #b3aca3;
+        font-size: 20px;
+        line-height: 1.5;
+        max-width: 40ch;
+      }
+      .pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+      }
+      .pill {
+        padding: 7px 15px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        font-size: 14px;
+        font-weight: 700;
+        color: #e6e1da;
+      }
+      .panel {
+        background: #161616;
+        border: 1px solid #2c2c2c;
+        border-radius: 14px;
+        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.55);
+        overflow: hidden;
+      }
+      .phead {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 14px 17px;
+        background: #202020;
+        border-bottom: 1px solid #2e2e2e;
+      }
+      .ptitle {
+        font-weight: 800;
+        color: #f37333;
+        font-size: 14px;
+        letter-spacing: 0.04em;
+      }
+      .prange {
+        flex: 1;
+        font-size: 14px;
+        color: #9a9a9a;
+      }
+      .btn {
+        border: 1px solid #3a3a3a;
+        background: #262626;
+        color: #ddd;
+        border-radius: 5px;
+        padding: 3px 10px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .pbody {
+        padding: 15px 17px 18px;
+      }
+      .found {
+        font-size: 13px;
+        font-weight: 800;
+        color: #a9c489;
+        letter-spacing: 0.04em;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #2c2c2c;
+      }
+      .row {
+        padding: 12px 0;
+        border-bottom: 1px solid #242424;
+      }
+      .row:last-child {
+        border-bottom: 0;
+      }
+      .dom {
+        font-weight: 700;
+        color: #fff;
+        font-size: 15px;
+      }
+      .sub {
+        font-size: 13px;
+        color: #8f8f8f;
+        margin-bottom: 7px;
+      }
+      .pos {
+        display: inline-block;
+        margin-right: 5px;
+        padding: 2px 11px;
+        border-radius: 11px;
+        background: #627d47;
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 700;
+      }
+      .pos.ad {
+        background: #7a5cff;
+      }
+      .pos.map {
+        background: #2b7fd4;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <span class="mark">G</span>
+      <h1>Stop counting results <em>with your finger.</em></h1>
+      <p>
+        Google restarts the numbering on every page. This gives every result its actual position, and
+        turns anything on your list green.
+      </p>
+      <div class="pills">
+        <span class="pill">True rank across pages</span>
+        <span class="pill">Your whole client list</span>
+        <span class="pill">Organic, Ads, local, Maps</span>
+        <span class="pill">No data collected</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="phead">
+        <span class="ptitle">SERP Counter</span>
+        <span class="prange">21-30</span>
+        <span class="btn">copy</span>
+        <span class="btn">&minus;</span>
+      </div>
+      <div class="pbody">
+        <div class="found">3 OF 48 CLIENTS ACROSS PAGES 1, 2, 3</div>
+        <div class="row">
+          <div class="dom">yourclient.com</div>
+          <div class="sub">Your Client Ltd</div>
+          <span class="pos">3</span><span class="pos map">Map 1 &middot;p1</span>
+        </div>
+        <div class="row">
+          <div class="dom">secondclient.com</div>
+          <div class="sub">Second Client Inc</div>
+          <span class="pos">13</span><span class="pos ad">Ad 2 &middot;p2</span>
+        </div>
+        <div class="row">
+          <div class="dom">thirdclient.com</div>
+          <div class="sub">Third Client Co</div>
+          <span class="pos">24</span>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>promo tile 440x280</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 440px;
+        height: 280px;
+        overflow: hidden;
+      }
+      body {
+        background-image: linear-gradient(105deg, rgba(16,15,14,0.94) 0%, rgba(18,17,16,0.86) 42%, rgba(20,17,14,0.72) 100%), url('bg-wide.png'); background-size: cover; background-position: center;
+        font-family: Mulish, Arial, sans-serif;
+        color: #fff;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+        padding: 26px 28px;
+      }
+      .mark {
+        display: inline-grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
+        background: #f37333;
+        color: #161616;
+        font-weight: 800;
+        font-size: 21px;
+        margin-bottom: 14px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 27px;
+        line-height: 1.14;
+        letter-spacing: -0.02em;
+        font-weight: 800;
+      }
+      h1 em {
+        font-style: normal;
+        color: #f37333;
+      }
+      p {
+        margin: 0;
+        color: #a8a29a;
+        font-size: 13px;
+        line-height: 1.45;
+        max-width: 24ch;
+      }
+      .stack {
+        display: grid;
+        gap: 9px;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+      .num {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        font: 700 13px/1 Mulish, Arial, sans-serif;
+        color: #fff;
+        background: linear-gradient(160deg, #ff8b52, #f37333 55%, #e05f1d);
+        box-shadow:
+          0 2px 6px rgba(0, 0, 0, 0.4),
+          inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      }
+      .num.hit {
+        background: linear-gradient(160deg, #86a566, #627d47 55%, #4c6337);
+        box-shadow:
+          0 0 0 3px rgba(98, 125, 71, 0.3),
+          0 2px 6px rgba(0, 0, 0, 0.4);
+      }
+      .bar {
+        height: 7px;
+        width: 84px;
+        border-radius: 4px;
+        background: #35322e;
+      }
+      .bar.g {
+        background: #5d7745;
+        width: 96px;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <span class="mark">G</span>
+      <h1>Page three is <em>really</em> 21 to 30.</h1>
+      <p>True rank on every Google result, and your whole list highlighted.</p>
+    </div>
+
+    <div class="stack">
+      <div class="chip"><span class="num">21</span><span class="bar"></span></div>
+      <div class="chip"><span class="num">22</span><span class="bar"></span></div>
+      <div class="chip"><span class="num hit">23</span><span class="bar g"></span></div>
+      <div class="chip"><span class="num">24</span><span class="bar"></span></div>
+    </div>
+  </body>
+</html>
