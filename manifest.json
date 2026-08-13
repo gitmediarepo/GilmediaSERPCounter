@@ -1,25 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Gilmedia SERP Counter",
-  "version": "1.6.0",
-  "description": "True rank numbering across Google result pages. Load your whole client list and see which of them appear in organic, Ads, the local pack, LSA and Maps.",
+  "version": "1.7.0",
+  "description": "Numbers Google results by true rank across pages and highlights your whole client list in organic, Ads, local pack and Maps.",
   "permissions": ["storage"],
-  "host_permissions": [
-    "*://www.google.com/*",
-    "*://www.google.ca/*",
-    "*://www.google.co.uk/*",
-    "*://www.google.com.au/*",
-    "*://www.google.ie/*",
-    "*://www.google.co.nz/*",
-    "*://www.google.fr/*",
-    "*://www.google.de/*",
-    "*://www.google.es/*",
-    "*://www.google.it/*",
-    "*://www.google.nl/*",
-    "*://www.google.com.mx/*",
-    "*://www.google.com.br/*",
-    "*://www.google.co.in/*"
-  ],
   "content_scripts": [
     {
       "matches": [

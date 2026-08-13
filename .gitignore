@@ -7,3 +7,5 @@ Thumbs.db
 
 # real client lists - never publish
 clients/
+
+dist/

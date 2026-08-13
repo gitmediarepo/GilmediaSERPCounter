@@ -58,10 +58,32 @@
     return Math.floor(pageOffset() / per) + 1;
   }
 
+  /* Validate the shape on the way in. sessionStorage is shared with the page's
+   * own origin, so this data is not fully ours to trust. Anything malformed is
+   * dropped rather than rendered. */
   function loadRun(q) {
     try {
       const s = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
-      if (s && s.q === q) return s;
+      if (!s || s.q !== q || !Array.isArray(s.pages) || !Array.isArray(s.entries)) throw 0;
+      return {
+        q,
+        pages: s.pages.filter((p) => Number.isFinite(p)),
+        entries: s.entries
+          .filter((e) => e && typeof e.key === 'string' && Array.isArray(e.hits))
+          .map((e) => ({
+            key: String(e.key).slice(0, 120),
+            name: typeof e.name === 'string' ? e.name.slice(0, 120) : '',
+            hits: e.hits
+              .filter((h) => h && Number.isFinite(h.rank))
+              .map((h) => ({
+                id: String(h.id || '').slice(0, 60),
+                kind: /^(organic|ad|lsa|local|maps)$/.test(h.kind) ? h.kind : 'organic',
+                rank: h.rank,
+                page: Number.isFinite(h.page) ? h.page : 1,
+                label: String(h.label || '').slice(0, 40),
+              })),
+          })),
+      };
     } catch {}
     return { q, pages: [], entries: [] };
   }
@@ -593,7 +615,13 @@
                * came from. Ad, LSA and map positions restart every page, so
                * those need the page spelled out. */
               const needsPage = h.kind !== 'organic' && pages.length > 1 && h.page;
-              const text = needsPage ? `${h.label} &middot;p${h.page}` : h.label;
+              /* Escaped even though we wrote these labels ourselves. The running
+               * log lives in sessionStorage, which a content script shares with
+               * the page's own origin, so anything on the page could in theory
+               * rewrite it. Never interpolate stored data raw into innerHTML. */
+              const text = needsPage
+                ? `${esc(h.label)} &middot;p${esc(h.page)}`
+                : esc(h.label);
               return `<span class="${NS}-pos ${NS}-pos--${esc(h.kind)}" title="page ${esc(h.page || '?')}">${text}</span>`;
             })
             .join('');

@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Privacy Policy - Gilmedia SERP Counter</title>
+    <meta
+      name="description"
+      content="Privacy policy for the Gilmedia SERP Counter Chrome extension. No data collection, no analytics, no network requests."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f37333'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='21' font-weight='700' text-anchor='middle' fill='%23161616'%3EG%3C/text%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --ink: #161616;
+        --orange: #b8480f;
+        --bg: #fff;
+        --bg-sunk: #f6f4f1;
+        --text: #1c1b19;
+        --text-soft: #5d5a55;
+        --line: #e4e0da;
+        --font: 'Mulish', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131211;
+          --bg-sunk: #1a1918;
+          --text: #f0ede8;
+          --text-soft: #b3aea6;
+          --line: #2c2a27;
+          --orange: #f37333;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 1.0625rem;
+        line-height: 1.65;
+      }
+      .topbar {
+        background: var(--ink);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .wrap {
+        max-width: 720px;
+        margin-inline: auto;
+        padding-inline: 24px;
+      }
+      .topbar .wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 58px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: #f37333;
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 15px;
+      }
+      main {
+        padding-block: 64px 96px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+      }
+      .updated {
+        color: var(--text-soft);
+        font-size: 0.875rem;
+        margin: 0 0 40px;
+      }
+      h2 {
+        margin: 40px 0 12px;
+        font-size: 1.25rem;
+        letter-spacing: -0.01em;
+      }
+      p {
+        margin: 0 0 16px;
+      }
+      ul {
+        margin: 0 0 16px;
+        padding-left: 22px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      .lede {
+        font-size: 1.15rem;
+        color: var(--text-soft);
+        border-left: 3px solid var(--orange);
+        padding: 4px 0 4px 20px;
+        margin-bottom: 32px;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        background: var(--bg-sunk);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0 0 16px;
+        font-size: 0.95rem;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-soft);
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding-block: 32px;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+      }
+      a {
+        color: var(--orange);
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap">
+        <a class="brand" href="./"><span class="mark">G</span> SERP Counter</a>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <h1>Privacy Policy</h1>
+      <p class="updated">Gilmedia SERP Counter &middot; last updated 13 August 2026</p>
+
+      <p class="lede">
+        This extension collects nothing, sends nothing, and has no server to send anything to.
+      </p>
+
+      <h2>What the extension does</h2>
+      <p>
+        Gilmedia SERP Counter reads the Google search results page you are already looking at, in
+        order to number each result by its true rank and highlight any domain on a list you have
+        entered yourself. All of that happens inside your browser, on the page as it is already
+        displayed.
+      </p>
+
+      <h2>Data we collect</h2>
+      <p>None. To be specific about the categories Google asks developers to declare:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Collected</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Personally identifiable information</td><td>No</td></tr>
+          <tr><td>Health information</td><td>No</td></tr>
+          <tr><td>Financial and payment information</td><td>No</td></tr>
+          <tr><td>Authentication information</td><td>No</td></tr>
+          <tr><td>Personal communications</td><td>No</td></tr>
+          <tr><td>Location</td><td>No</td></tr>
+          <tr><td>Web history</td><td>No</td></tr>
+          <tr><td>User activity</td><td>No</td></tr>
+          <tr><td>Website content</td><td>Read in the page, never transmitted or stored</td></tr>
+        </tbody>
+      </table>
+
+      <h2>What is stored, and where</h2>
+      <ul>
+        <li>
+          <strong>Your list of domains and business names.</strong> Saved with the
+          <code>storage</code> permission into Chrome's own sync storage, so it follows your Chrome
+          profile across your devices. It is synced by Google as part of your Chrome profile, exactly
+          like a bookmark. It is never sent to us, because there is nowhere for it to be sent.
+        </li>
+        <li>
+          <strong>Your display preferences.</strong> The checkboxes for which result types to number.
+          Same storage, same treatment.
+        </li>
+        <li>
+          <strong>A short-lived record of the current search.</strong> While you page through results
+          for one search term, the extension keeps a note of what it found in your browser tab's
+          session storage so the panel can show a running total. It is deleted when you close the
+          tab.
+        </li>
+      </ul>
+
+      <h2>Network activity</h2>
+      <p>
+        The extension makes no network requests of any kind. There is no backend service, no
+        analytics, no telemetry, no error reporting and no update ping beyond Chrome's own extension
+        update mechanism.
+      </p>
+
+      <h2>Permissions and why they exist</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Permission</th>
+            <th>Why</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>storage</code></td>
+            <td>To remember your list of domains and your display preferences between sessions.</td>
+          </tr>
+          <tr>
+            <td>Access to Google search pages</td>
+            <td>
+              To read the results already on screen so they can be numbered and highlighted. The
+              extension runs only on Google search and Google Maps pages, and on no other website.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Third parties</h2>
+      <p>
+        No data is sold, shared, or transferred to anyone, for any purpose. There are no third-party
+        libraries, trackers, or advertising systems in the extension.
+      </p>
+
+      <h2>Children</h2>
+      <p>
+        The extension is a professional search tool and is not directed at children. Since it
+        collects no data at all, it collects none from children either.
+      </p>
+
+      <h2>Changes to this policy</h2>
+      <p>
+        If the extension ever starts handling data differently, this page will be updated before that
+        version ships, and the date at the top will change.
+      </p>
+
+      <h2>Contact</h2>
+      <p>
+        Questions about this policy can go to
+        <a href="https://www.gilmedia.com/">Gilmedia</a>, or be raised as an issue on the
+        <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/issues">GitHub repository</a>.
+        The full source code is public and can be read line by line.
+      </p>
+    </main>
+
+    <footer class="wrap">
+      Gilmedia SERP Counter is open source under the MIT licence.
+      <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">View the source</a>.
+    </footer>
+  </body>
+</html>
