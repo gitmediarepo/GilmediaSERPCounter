@@ -77,6 +77,10 @@
         outline: none;
         border-color: #f37333;
       }
+      textarea.drop {
+        border-color: #627d47;
+        background: #1d211a;
+      }
       .bar {
         display: flex;
         align-items: center;
@@ -182,7 +186,7 @@
   <body>
     <header>
       <h1>GILMEDIA SERP COUNTER</h1>
-      <span class="ver">v1.4</span>
+      <span class="ver">v1.5</span>
       <span class="count" id="count"></span>
     </header>
 
@@ -199,10 +203,17 @@
       ></textarea>
       <div class="bar">
         <button class="primary" id="save">Save list</button>
-        <button id="example">Load example</button>
-        <button id="clear" class="danger">Clear list</button>
+        <button id="import" title="Merge a .txt or .csv list into this one">Import</button>
+        <button id="export" title="Download the list as a .txt file">Export</button>
+        <button id="example">Example</button>
+        <button id="clear" class="danger">Clear</button>
         <span class="status" id="status"></span>
       </div>
+      <input type="file" id="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden />
+      <p class="hint" style="margin: 8px 0 0">
+        Import merges, it never overwrites. You can also drag a file straight onto the box, or just
+        paste. Use <b>Clear</b> first if you want to replace the list outright.
+      </p>
 
       <details>
         <summary>Format and examples</summary>

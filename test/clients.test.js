@@ -30,6 +30,9 @@ function loadParser() {
        <span id="count"></span><span id="status"></span>
        <textarea id="clients"></textarea>
        <button id="save"></button><button id="example"></button><button id="clear"></button>
+       <button id="import"></button><button id="export"></button>
+       <input type="file" id="file">
+       <a id="dl"></a>
        ${['showOrganic', 'showAds', 'showLocal', 'showLsa', 'showPanel', 'debug']
          .map((id) => `<input type="checkbox" id="${id}">`)
          .join('')}
@@ -40,12 +43,16 @@ function loadParser() {
     storage: { sync: { get: (d, cb) => cb(d), set: (o, cb) => cb && cb() } },
     runtime: {},
   };
-  // parseClients is a top-level function declaration, so it lands on the window.
-  dom.window.eval(POPUP + '\n;window.__parseClients = parseClients;');
-  return dom.window.__parseClients;
+  // Top-level function declarations land on the window.
+  dom.window.eval(
+    POPUP + '\n;window.__parseClients = parseClients; window.__mergeText = mergeText;'
+  );
+  return dom.window;
 }
 
-const parse = loadParser();
+const popupWin = loadParser();
+const parse = popupWin.__parseClients;
+const merge = popupWin.__mergeText;
 
 check(
   'domain | name, the documented format',
@@ -105,6 +112,46 @@ timhortons.com | Tim Hortons
 yelp.com | Yelp
 homedepot.com | Home Depot`).targets.length,
   5
+);
+
+// ------------------------------------------------------------ import merge
+
+/* Import must add without destroying. Re-importing the same file has to be a
+ * no-op, otherwise a roster doubles every time someone hits the button twice. */
+const BASE = 'walmart.com | Walmart\nstarbucks.com | Starbucks';
+
+check('import adds only the new lines', merge(BASE, 'timhortons.com | Tim Hortons').added, 1);
+check(
+  'existing entries survive the merge',
+  merge(BASE, 'timhortons.com | Tim Hortons').text.includes('walmart.com | Walmart'),
+  true
+);
+check('re-importing the same file adds nothing', merge(BASE, BASE).added, 0);
+check('and leaves the text untouched', merge(BASE, BASE).text, BASE);
+check(
+  'a partial overlap adds only what is missing',
+  merge(BASE, 'walmart.com | Walmart\nyelp.com | Yelp').added,
+  1
+);
+check(
+  'comments in the imported file are not carried over',
+  merge(BASE, '# a comment\nyelp.com | Yelp').text.includes('# a comment'),
+  false
+);
+check(
+  'importing into an empty list works',
+  merge('', 'walmart.com | Walmart').text.trim(),
+  'walmart.com | Walmart'
+);
+check(
+  'a csv export re-imports cleanly',
+  merge(BASE, 'yelp.com,Yelp').added,
+  1
+);
+check(
+  'the same client with a different name is treated as new',
+  merge(BASE, 'walmart.com | Walmart Canada').added,
+  1
 );
 
 // ------------------------------------------------- panel with a full roster

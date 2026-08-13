@@ -76,7 +76,17 @@ Best position sorts to the top. Position chips are colour-coded by surface, matc
 
 Clients that did not appear are left out entirely, because with a full roster loaded the misses would bury the hits. When none of them appear you get a single line saying so, with a **why?** link that prints every domain on the page to the console.
 
-Use **Clear list** in the popup to wipe the roster. It asks for a second click first, since there is no undo.
+### Import and export
+
+**Export** downloads the list as a dated .txt file, so it can live in a shared drive or a repo.
+
+**Import** merges rather than overwriting: only clients not already on the list get added, so re-importing the same file twice is a no-op. Three ways in:
+
+- the **Import** button, which opens a file picker
+- dragging a .txt or .csv straight onto the box
+- plain paste, since the box is just text
+
+Use **Clear** first if you want to replace the list outright rather than merge. Clear asks for a second click, since there is no undo.
 
 The **copy** button puts a one-line summary on the clipboard:
 

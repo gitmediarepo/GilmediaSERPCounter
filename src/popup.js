@@ -97,6 +97,29 @@ function parseClients(text) {
   return { targets, skipped };
 }
 
+/* Merge without clobbering. Only lines whose client is not already in the list
+ * get appended, so importing the same file twice is a no-op and importing a
+ * partial list never destroys what is already there. */
+function mergeText(existing, incoming) {
+  const have = new Set(parseClients(existing).targets.map((t) => `${t.domain}|${t.name.toLowerCase()}`));
+  const fresh = [];
+
+  for (const raw of String(incoming || '').split(/\r?\n/)) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const parsed = parseClients(line).targets[0];
+    if (!parsed) continue;
+    const key = `${parsed.domain}|${parsed.name.toLowerCase()}`;
+    if (have.has(key)) continue;
+    have.add(key);
+    fresh.push(line);
+  }
+
+  if (!fresh.length) return { text: existing, added: 0 };
+  const base = existing.trim();
+  return { text: (base ? base + '\n' : '') + fresh.join('\n') + '\n', added: fresh.length };
+}
+
 function setStatus(msg, kind) {
   const el = $('status');
   el.textContent = msg;
@@ -145,6 +168,87 @@ chrome.storage.sync.get(DEFAULTS, (cfg) => {
 });
 
 $('save').addEventListener('click', save);
+
+// ------------------------------------------------------------ export
+
+$('export').addEventListener('click', () => {
+  const text = $('clients').value.trim();
+  if (!text) {
+    setStatus('nothing to export', 'bad');
+    return;
+  }
+  const d = new Date();
+  const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(
+    d.getDate()
+  ).padStart(2, '0')}`;
+  const blob = new Blob([text + '\n'], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `serp-counter-clients-${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Give the download a moment to start before the blob is torn down.
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  setStatus('exported', 'ok');
+  setTimeout(() => setStatus(''), 2600);
+});
+
+// ------------------------------------------------------------ import
+
+function ingest(text, source) {
+  const { text: merged, added } = mergeText($('clients').value, text);
+  if (!added) {
+    setStatus(`${source}: nothing new`, 'bad');
+    setTimeout(() => setStatus(''), 2600);
+    return;
+  }
+  $('clients').value = merged;
+  save();
+  setStatus(`${source}: ${added} added`, 'ok');
+  setTimeout(() => setStatus(''), 3000);
+}
+
+function readFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => ingest(String(reader.result || ''), 'imported');
+  reader.onerror = () => setStatus('could not read that file', 'bad');
+  reader.readAsText(file);
+}
+
+$('import').addEventListener('click', () => $('file').click());
+$('file').addEventListener('change', (e) => {
+  readFile(e.target.files && e.target.files[0]);
+  e.target.value = ''; // let the same file be picked again
+});
+
+/* Drag and drop straight onto the box. This is the reliable import path: on
+ * some Chrome builds the file picker closes the popup before the change event
+ * fires, and a drop never does. */
+const box = $('clients');
+['dragenter', 'dragover'].forEach((ev) =>
+  box.addEventListener(ev, (e) => {
+    e.preventDefault();
+    box.classList.add('drop');
+  })
+);
+['dragleave', 'drop'].forEach((ev) =>
+  box.addEventListener(ev, (e) => {
+    e.preventDefault();
+    box.classList.remove('drop');
+  })
+);
+box.addEventListener('drop', (e) => {
+  const dt = e.dataTransfer;
+  if (!dt) return;
+  if (dt.files && dt.files.length) readFile(dt.files[0]);
+  else {
+    const text = dt.getData('text');
+    if (text) ingest(text, 'dropped');
+  }
+});
 
 /* Clear needs two clicks. Wiping a sixty-client roster on a stray click, with
  * nothing to undo it, is not a thing that should be one click away. */

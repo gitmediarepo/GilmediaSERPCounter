@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Gilmedia SERP Counter",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "True rank numbering across Google result pages. Load your whole client list and see which of them appear in organic, Ads, the local pack, LSA and Maps.",
   "permissions": ["storage"],
   "host_permissions": [

@@ -4,3 +4,6 @@ package.json
 *.zip
 .DS_Store
 Thumbs.db
+
+# real client lists - never publish
+clients/
