@@ -1,0 +1,64 @@
+name: Release
+
+# Push a tag like v1.8.0 and this does the rest: runs the tests, builds both
+# zips, publishes the GitHub release, and submits to the Chrome Web Store if
+# the four CWS_* secrets are set. No secrets means it just skips that step.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Lifted to job level because the `secrets` context is not available in a
+    # step's `if`, but `env` is. This is how the store step self-disables.
+    env:
+      CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+      CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+      CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+      CWS_ITEM_ID: ${{ secrets.CWS_ITEM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Tag must match manifest version
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          MAN=$(node -p "require('./manifest.json').version")
+          echo "tag=$TAG manifest=$MAN"
+          if [ "$TAG" != "$MAN" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match manifest version $MAN"
+            exit 1
+          fi
+
+      - name: Install test dependency
+        run: npm install --no-save jsdom
+
+      - name: Run tests
+        run: for f in test/*.test.js; do echo "== $f"; node "$f" || exit 1; done
+
+      - name: Build packages
+        run: |
+          node build/store-package.js
+          node build/release-package.js
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --generate-notes \
+            dist/gilmedia-serp-counter-"$GITHUB_REF_NAME".zip
+
+      - name: Submit to Chrome Web Store
+        if: env.CWS_ITEM_ID != ''
+        run: node build/publish-store.js
