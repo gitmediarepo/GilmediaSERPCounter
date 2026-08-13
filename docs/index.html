@@ -1,0 +1,1471 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gilmedia SERP Counter - true rank numbering for Google results</title>
+    <meta
+      name="description"
+      content="Chrome extension that numbers Google results by true rank across pages. Load your whole client list and see which of them appear in organic, Ads, the local pack, LSA and Maps."
+    />
+    <meta property="og:title" content="Gilmedia SERP Counter" />
+    <meta
+      property="og:description"
+      content="Google restarts result numbering on every page. This fixes that."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f37333'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='21' font-weight='700' text-anchor='middle' fill='%23161616'%3EG%3C/text%3E%3C/svg%3E"
+    />
+
+    <style>
+      /* ---------------------------------------------------------- 1. tokens */
+      :root {
+        --ink: #161616;
+        --orange: #f37333;
+        /* Deep orange is the on-light variant. #d85a1b only reaches 3.89:1 on
+           white, which fails AA for the small bold eyebrow labels. */
+        --orange-deep: #b8480f;
+        --green: #627d47;
+        --green-deep: #4f6639;
+        --violet: #6b52e0;
+        --blue: #2b7fd4;
+
+        --bg: #ffffff;
+        --bg-sunk: #f6f4f1;
+        --surface: #ffffff;
+        --text: #1c1b19;
+        --text-soft: #5d5a55;
+        --text-faint: #8a857e;
+        --line: #e4e0da;
+        --line-strong: #cfc9c1;
+
+        --font: 'Mulish', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+        --text-sm: 0.875rem;
+        --text-base: clamp(1rem, 0.97rem + 0.14vw, 1.0625rem);
+        --text-lg: clamp(1.125rem, 1.06rem + 0.3vw, 1.3125rem);
+        --text-xl: clamp(1.375rem, 1.24rem + 0.6vw, 1.75rem);
+        --text-2xl: clamp(1.75rem, 1.5rem + 1.15vw, 2.5rem);
+        --text-3xl: clamp(2.25rem, 1.7rem + 2.6vw, 4rem);
+
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --space-12: 48px;
+        --space-16: 64px;
+        --space-24: 96px;
+
+        --radius-sm: 5px;
+        --radius-md: 9px;
+        --radius-lg: 16px;
+
+        --shadow-sm: 0 1px 2px rgba(40, 32, 24, 0.07), 0 2px 8px rgba(40, 32, 24, 0.05);
+        --shadow-md: 0 4px 12px rgba(40, 32, 24, 0.09), 0 16px 40px rgba(40, 32, 24, 0.08);
+
+        --fast: 140ms ease-out;
+        --std: 280ms cubic-bezier(0.22, 0.61, 0.36, 1);
+
+        --wrap: 1120px;
+        --read: 68ch;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131211;
+          --bg-sunk: #1a1918;
+          --surface: #1e1d1b;
+          --text: #f0ede8;
+          --text-soft: #b3aea6;
+          --text-faint: #8a847b;
+          --line: #2c2a27;
+          --line-strong: #3d3a36;
+          --green-deep: #93b073;
+          --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+          --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.35);
+        }
+      }
+
+      /* ------------------------------------------------------ 2. reset/base */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: var(--text-base);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+        font-weight: 800;
+      }
+      p {
+        margin: 0;
+      }
+      a {
+        color: inherit;
+      }
+      img,
+      svg {
+        max-width: 100%;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        background: var(--bg-sunk);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        padding: 0.1em 0.4em;
+        white-space: nowrap;
+      }
+      :focus-visible {
+        outline: 3px solid var(--orange);
+        outline-offset: 3px;
+        border-radius: 3px;
+      }
+
+      /* -------------------------------------------------------- 3. layout */
+      .wrap {
+        width: 100%;
+        max-width: var(--wrap);
+        margin-inline: auto;
+        padding-inline: var(--space-6);
+      }
+      section {
+        padding-block: var(--space-24);
+        border-top: 1px solid var(--line);
+      }
+      .lede {
+        max-width: var(--read);
+        color: var(--text-soft);
+        font-size: var(--text-lg);
+      }
+      .eyebrow {
+        display: inline-block;
+        margin-bottom: var(--space-4);
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--orange-deep);
+      }
+      @media (prefers-color-scheme: dark) {
+        .eyebrow {
+          color: var(--orange);
+        }
+      }
+      .sec-head {
+        margin-bottom: var(--space-12);
+      }
+      .sec-head h2 {
+        font-size: var(--text-2xl);
+        margin-bottom: var(--space-4);
+      }
+
+      /* --------------------------------------------------------- 4. header */
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: var(--ink);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .topbar .wrap {
+        display: flex;
+        align-items: center;
+        gap: var(--space-6);
+        height: 58px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        text-decoration: none;
+        color: #fff;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+      }
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: var(--orange);
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 15px;
+      }
+      /* Scrolls sideways on small screens rather than disappearing. Hiding it
+         with no hamburger left the section anchors unreachable on a phone. */
+      .topnav {
+        display: flex;
+        margin-left: auto;
+        gap: var(--space-4);
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        mask-image: linear-gradient(to right, transparent 0, #000 12px);
+      }
+      .topnav::-webkit-scrollbar {
+        display: none;
+      }
+      .topnav a {
+        color: rgba(255, 255, 255, 0.66);
+        text-decoration: none;
+        font-size: var(--text-sm);
+        font-weight: 600;
+        white-space: nowrap;
+        padding-block: var(--space-3);
+        transition: color var(--fast);
+      }
+      .topnav a:hover {
+        color: #fff;
+      }
+      @media (min-width: 768px) {
+        .topnav {
+          gap: var(--space-6);
+          overflow-x: visible;
+          mask-image: none;
+        }
+      }
+      /* Least useful link goes first when space runs out. */
+      @media (max-width: 560px) {
+        .topnav a[href='#what'] {
+          display: none;
+        }
+      }
+
+      /* ----------------------------------------------------------- 5. hero */
+      .hero {
+        background: var(--ink);
+        color: #fff;
+        border-top: 0;
+        padding-block: var(--space-24) var(--space-24);
+        overflow: hidden;
+      }
+      .hero-grid {
+        display: grid;
+        gap: var(--space-16);
+        align-items: center;
+      }
+      @media (min-width: 900px) {
+        .hero-grid {
+          grid-template-columns: 1fr 0.92fr;
+          gap: var(--space-12);
+        }
+      }
+      .hero h1 {
+        font-size: var(--text-3xl);
+        margin-bottom: var(--space-6);
+        max-width: 15ch;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--orange);
+      }
+      .hero p {
+        color: rgba(255, 255, 255, 0.72);
+        font-size: var(--text-lg);
+        max-width: 46ch;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3);
+        margin-top: var(--space-8);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-2);
+        min-height: 46px;
+        padding: 0 var(--space-6);
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-decoration: none;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition:
+          transform var(--fast),
+          background var(--fast),
+          border-color var(--fast);
+      }
+      .btn-primary {
+        background: var(--orange);
+        color: var(--ink);
+      }
+      .btn-primary:hover {
+        background: #ff8848;
+      }
+      .btn-ghost {
+        border-color: rgba(255, 255, 255, 0.24);
+        color: #fff;
+      }
+      .btn-ghost:hover {
+        border-color: rgba(255, 255, 255, 0.55);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .btn:active {
+          transform: translateY(1px);
+        }
+      }
+      .hero-note {
+        margin-top: var(--space-4);
+        font-size: var(--text-sm);
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      /* ------------------------------------------------- 6. the SERP demo */
+      .demo {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
+      }
+      .demo-col {
+        background: #1f1e1c;
+        border: 1px solid #2e2c29;
+        border-radius: var(--radius-lg);
+        padding: var(--space-4);
+      }
+      .demo-col.good {
+        border-color: rgba(98, 125, 71, 0.55);
+      }
+      .demo-cap {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.42);
+      }
+      .demo-col.good .demo-cap {
+        color: #a9c489;
+      }
+      .demo-url {
+        font-family: var(--mono);
+        font-size: 0.66rem;
+        color: rgba(255, 255, 255, 0.34);
+        margin-bottom: var(--space-4);
+        word-break: break-all;
+      }
+      .res {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-3);
+        padding: var(--space-2) 0;
+      }
+      .res + .res {
+        border-top: 1px solid #292724;
+      }
+      /* Mirrors the real badge: a circle with depth, not a flat pill. */
+      .num {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        background: #45423d;
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      }
+      .num.on {
+        background: linear-gradient(160deg, #ff8b52 0%, #f37333 55%, #e05f1d 100%);
+        box-shadow:
+          0 1px 2px rgba(0, 0, 0, 0.32),
+          0 4px 10px rgba(0, 0, 0, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      }
+      .num.hit {
+        background: linear-gradient(160deg, #86a566 0%, #627d47 55%, #4c6337 100%);
+        box-shadow:
+          0 0 0 3px rgba(98, 125, 71, 0.28),
+          0 4px 10px rgba(0, 0, 0, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      }
+      .res-lines {
+        flex: 1;
+        min-width: 0;
+        padding-top: 2px;
+      }
+      .l {
+        height: 6px;
+        border-radius: 3px;
+        background: #3a3733;
+      }
+      .l.t {
+        width: 78%;
+        background: #4d6b8f;
+        margin-bottom: 5px;
+      }
+      .l.s {
+        width: 96%;
+        margin-bottom: 4px;
+      }
+      .l.s2 {
+        width: 62%;
+      }
+      .res.mine .l.t {
+        background: #8fae6f;
+      }
+      .res.mine {
+        background: rgba(98, 125, 71, 0.13);
+        outline: 1px solid rgba(98, 125, 71, 0.5);
+        border-radius: 7px;
+        padding-inline: 6px;
+        margin-inline: -6px;
+      }
+      @media (max-width: 560px) {
+        .demo {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Position chips in the panel mock, coloured per surface like the badges. */
+      .pos {
+        display: inline-block;
+        margin-right: 4px;
+        padding: 1px 8px;
+        border-radius: 9px;
+        background: var(--green);
+        color: #fff;
+        font: 700 0.68rem/1.6 var(--font);
+      }
+      .pos.ad {
+        background: #7a5cff;
+      }
+      .pos.map {
+        background: #2b7fd4;
+      }
+
+      /* ------------------------------------------------------ 7. surfaces */
+      .surfaces {
+        border-top: 1px solid var(--line);
+        margin-top: var(--space-8);
+      }
+      .surface {
+        display: grid;
+        gap: var(--space-2) var(--space-6);
+        padding-block: var(--space-6);
+        border-bottom: 1px solid var(--line);
+        align-items: baseline;
+      }
+      @media (min-width: 760px) {
+        .surface {
+          grid-template-columns: 190px 130px 1fr;
+        }
+      }
+      .surface dt {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        font-weight: 700;
+      }
+      .chip {
+        display: inline-grid;
+        place-items: center;
+        min-width: 34px;
+        height: 21px;
+        padding: 0 7px;
+        border-radius: 11px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--orange-deep);
+        letter-spacing: 0.01em;
+      }
+      .chip.ad {
+        background: var(--violet);
+      }
+      .chip.map {
+        background: var(--blue);
+      }
+      .scale {
+        font-weight: 700;
+        font-size: var(--text-sm);
+        color: var(--text);
+      }
+      .surface dd {
+        margin: 0;
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+      }
+
+      /* --------------------------------------------------------- 8. steps */
+      .steps {
+        counter-reset: step;
+        display: grid;
+        gap: var(--space-8);
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      @media (min-width: 860px) {
+        .steps {
+          grid-template-columns: repeat(2, 1fr);
+          gap: var(--space-12) var(--space-16);
+        }
+      }
+      .step {
+        counter-increment: step;
+        position: relative;
+        padding-left: 62px;
+      }
+      .step::before {
+        content: counter(step);
+        position: absolute;
+        left: 0;
+        top: -6px;
+        font-size: 2.6rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--orange);
+        letter-spacing: -0.04em;
+      }
+      .step h3 {
+        font-size: var(--text-lg);
+        margin-bottom: var(--space-2);
+      }
+      .step p {
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+        max-width: 46ch;
+      }
+      .step .shot {
+        margin-top: var(--space-4);
+      }
+
+      /* mock of the chrome://extensions developer-mode bar */
+      .shot {
+        background: var(--surface);
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        font-size: 0.8rem;
+      }
+      .shot-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: var(--bg-sunk);
+        border-bottom: 1px solid var(--line);
+      }
+      .dots {
+        display: flex;
+        gap: 5px;
+      }
+      .dots i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--line-strong);
+      }
+      .addr {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        /* --text-faint would be 3.33:1 against the sunk bar background. */
+        color: var(--text-soft);
+      }
+      .shot-body {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-4);
+      }
+      .shot-body .grow {
+        flex: 1;
+        font-weight: 700;
+      }
+      .toggle {
+        flex: none;
+        width: 34px;
+        height: 19px;
+        border-radius: 10px;
+        background: var(--green);
+        position: relative;
+      }
+      .toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #fff;
+      }
+      .fake-btn {
+        border: 1px solid var(--line-strong);
+        border-radius: 6px;
+        padding: 4px 10px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-soft);
+      }
+      .fake-btn.hi {
+        border-color: var(--orange);
+        color: var(--orange-deep);
+        background: rgba(243, 115, 51, 0.09);
+      }
+      @media (prefers-color-scheme: dark) {
+        .fake-btn.hi {
+          color: var(--orange);
+        }
+      }
+
+      /* --------------------------------------------------------- 9. setup */
+      .setup-grid {
+        display: grid;
+        gap: var(--space-12);
+      }
+      @media (min-width: 880px) {
+        .setup-grid {
+          grid-template-columns: 1fr 320px;
+          gap: var(--space-16);
+          align-items: start;
+        }
+      }
+      .field {
+        padding-block: var(--space-6);
+        border-bottom: 1px solid var(--line);
+      }
+      .field:first-of-type {
+        border-top: 1px solid var(--line);
+      }
+      .field h3 {
+        font-size: var(--text-base);
+        margin-bottom: var(--space-2);
+      }
+      .field p {
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+      }
+
+      /* mock of the extension popup */
+      .popup {
+        background: var(--ink);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        color: #f2f2f2;
+        font-size: 0.8rem;
+      }
+      .popup-head {
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 1px solid #2a2a2a;
+        font-weight: 800;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        color: var(--orange);
+      }
+      .popup-body {
+        padding: var(--space-4);
+      }
+      .inp {
+        border: 1px solid #333;
+        border-radius: 6px;
+        background: #1f1f1f;
+        padding: 7px 9px;
+        margin-bottom: var(--space-2);
+        color: #6e6a65;
+        font-size: 0.75rem;
+      }
+      .inp.filled {
+        color: #f2f2f2;
+      }
+      .popup-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        padding: 7px 0;
+        border-bottom: 1px solid #242424;
+        font-size: 0.75rem;
+      }
+      .popup-row:last-child {
+        border-bottom: 0;
+      }
+      .popup-row .sq {
+        width: 13px;
+        height: 13px;
+        border-radius: 3px;
+        background: var(--green);
+        flex: none;
+      }
+
+      /* ---------------------------------------------------------- 10. faq */
+      .faq {
+        max-width: var(--read);
+      }
+      details {
+        border-bottom: 1px solid var(--line);
+      }
+      details summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding-block: var(--space-6);
+        font-weight: 700;
+        cursor: pointer;
+        list-style: none;
+        min-height: 44px;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::after {
+        content: '';
+        flex: none;
+        width: 11px;
+        height: 11px;
+        border-right: 2px solid var(--text-faint);
+        border-bottom: 2px solid var(--text-faint);
+        transform: rotate(45deg) translate(-2px, -2px);
+        transition: transform var(--fast);
+      }
+      details[open] summary::after {
+        transform: rotate(-135deg) translate(-3px, -3px);
+      }
+      details p {
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+        padding-bottom: var(--space-6);
+        max-width: 62ch;
+      }
+      details p + p {
+        margin-top: var(--space-3);
+      }
+
+      /* -------------------------------------------------------- 11. misc */
+      .callout {
+        border-left: 3px solid var(--orange);
+        padding: var(--space-2) 0 var(--space-2) var(--space-6);
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+        max-width: var(--read);
+        margin-top: var(--space-8);
+      }
+      .privacy {
+        display: grid;
+        gap: var(--space-6);
+        margin-top: var(--space-8);
+      }
+      @media (min-width: 700px) {
+        .privacy {
+          grid-template-columns: repeat(3, 1fr);
+          gap: var(--space-12);
+        }
+      }
+      .privacy div h3 {
+        font-size: var(--text-base);
+        margin-bottom: var(--space-2);
+        color: var(--green-deep);
+      }
+      .privacy div p {
+        color: var(--text-soft);
+        font-size: var(--text-sm);
+      }
+      footer {
+        background: var(--ink);
+        color: rgba(255, 255, 255, 0.55);
+        padding-block: var(--space-12);
+        font-size: var(--text-sm);
+      }
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-4) var(--space-8);
+        align-items: center;
+      }
+      footer a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      footer a:hover {
+        color: var(--orange);
+      }
+      footer .sp {
+        margin-left: auto;
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .reveal {
+          opacity: 0;
+          transform: translateY(14px);
+          transition:
+            opacity var(--std),
+            transform var(--std);
+        }
+        .reveal.in {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header class="topbar">
+      <div class="wrap">
+        <a class="brand" href="#top"><span class="mark">G</span> SERP Counter</a>
+        <nav class="topnav">
+          <a href="#what">What it does</a>
+          <a href="#install">Install</a>
+          <a href="#setup">Setup</a>
+          <a href="#faq">FAQ</a>
+          <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">GitHub</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <!-- ------------------------------------------------------------ hero -->
+      <section class="hero">
+        <div class="wrap hero-grid">
+          <div>
+            <span class="eyebrow" style="color: var(--orange)">Free Chrome extension</span>
+            <h1>Google restarts counting. <em>You shouldn't have to.</em></h1>
+            <p>
+              On page 3 of the results, Google shows you 1 through 10. Those are really positions 21
+              through 30. This extension numbers every result by its true rank and marks your domain
+              in green wherever it turns up.
+            </p>
+            <div class="cta-row">
+              <a
+                class="btn btn-primary"
+                href="https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest"
+                >Download for Chrome</a
+              >
+              <a class="btn btn-ghost" href="#install">How to install</a>
+            </div>
+            <p class="hero-note">
+              Free and open source. No account, no tracking, no data leaves your browser.
+            </p>
+          </div>
+
+          <!-- The problem, shown rather than described -->
+          <div class="demo" aria-label="Comparison of Google's numbering against the extension's">
+            <div class="demo-col">
+              <div class="demo-cap">Google, page 3</div>
+              <div class="demo-url">/search?q=...&amp;start=20</div>
+              <div class="res">
+                <span class="num">1</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num">2</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num">3</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num">4</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num">5</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="demo-col good">
+              <div class="demo-cap">With SERP Counter</div>
+              <div class="demo-url">true rank 21-30</div>
+              <div class="res">
+                <span class="num on">21</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num on">22</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res mine">
+                <span class="num hit">23</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num on">24</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+              <div class="res">
+                <span class="num on">25</span>
+                <div class="res-lines">
+                  <div class="l t"></div>
+                  <div class="l s"></div>
+                  <div class="l s2"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------ what it does -->
+      <section id="what">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="eyebrow">What it does</span>
+            <h2>Five surfaces, five separate counts</h2>
+            <p class="lede">
+              Paid, local and organic each count on their own scale, so an ad block at the top of
+              the page never shifts your organic numbers.
+            </p>
+          </div>
+
+          <dl class="surfaces reveal">
+            <div class="surface">
+              <dt><span class="chip">24</span> Organic</dt>
+              <div class="scale">True rank</div>
+              <dd>Continues across pages. Page 4 numbers 31 to 40, not 1 to 10.</dd>
+            </div>
+            <div class="surface">
+              <dt><span class="chip ad">Ad 2</span> Google Ads</dt>
+              <div class="scale">Own scale</div>
+              <dd>Top and bottom ad blocks counted separately, matched on your domain.</dd>
+            </div>
+            <div class="surface">
+              <dt><span class="chip map">Map 3</span> Local pack</dt>
+              <div class="scale">Own scale</div>
+              <dd>Matched on business name, or on the domain behind the website link.</dd>
+            </div>
+            <div class="surface">
+              <dt><span class="chip ad">LSA 1</span> Local Services Ads</dt>
+              <div class="scale">Own scale</div>
+              <dd>The Google Guaranteed block above everything else, matched on business name.</dd>
+            </div>
+            <div class="surface">
+              <dt><span class="chip map">7</span> Google Maps</dt>
+              <div class="scale">Feed position</div>
+              <dd>Numbers the results feed on Maps itself, matched on business name.</dd>
+            </div>
+          </dl>
+
+          <div class="sec-head reveal" style="margin-top: var(--space-24)">
+            <span class="eyebrow">Client list</span>
+            <h2>Load every client once</h2>
+            <p class="lede">
+              Paste your whole roster into the popup, one client per line. Every search then tells
+              you which of them showed up, with no switching between profiles.
+            </p>
+          </div>
+
+          <div class="shot reveal" style="max-width: 640px">
+            <div class="shot-bar">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span class="addr">domain | Client Name</span>
+            </div>
+            <pre
+              style="
+                margin: 0;
+                padding: var(--space-4);
+                font-family: var(--mono);
+                font-size: 0.76rem;
+                line-height: 1.8;
+                overflow-x: auto;
+                color: var(--text-soft);
+              "
+><span style="color: var(--text)">walmart.com | Walmart
+starbucks.com | Starbucks
+timhortons.com | Tim Hortons</span>
+
+# The business name is OPTIONAL.
+# A domain on its own matches organic results and Ads:
+<span style="color: var(--text)">yelp.com</span>
+
+# A name on its own matches the local pack, LSA and Maps:
+<span style="color: var(--text)">Home Depot</span>
+
+# Lines starting with # are ignored</pre>
+          </div>
+
+          <div class="privacy reveal">
+            <div>
+              <h3>Paste from anywhere</h3>
+              <p>
+                Pipe, comma or tab all work, so a copy straight out of a spreadsheet needs no
+                cleaning up. Padding spaces are ignored and the two columns can be in either order.
+              </p>
+            </div>
+            <div>
+              <h3>Two fields, two jobs</h3>
+              <p>
+                The domain matches organic results and Ads, subdomains included. The name matches
+                the local pack, Local Services Ads and Maps, where Google prints a business name
+                instead of a URL.
+              </p>
+            </div>
+            <div>
+              <h3>Every match, all its positions</h3>
+              <p>
+                Each client that appears gets a row listing all of its positions at once, best
+                first. Clients that did not appear are left out, so the hits are never buried.
+              </p>
+            </div>
+          </div>
+
+          <div class="shot reveal" style="max-width: 420px; margin-top: var(--space-8)">
+            <div class="shot-bar">
+              <span class="dots"><i></i><i></i><i></i></span>
+              <span class="addr">summary panel</span>
+            </div>
+            <div style="padding: var(--space-4); background: var(--ink)">
+              <div
+                style="
+                  font: 800 0.68rem/1 var(--font);
+                  letter-spacing: 0.06em;
+                  color: #a9c489;
+                  padding-bottom: 9px;
+                  border-bottom: 1px solid #2c2c2c;
+                "
+              >
+                4 OF 60 CLIENTS ON THIS PAGE
+              </div>
+              <div style="display: grid; gap: 10px; padding-top: 10px">
+                <div>
+                  <div style="color: #fff; font-weight: 700; font-size: 0.8rem">walmart.com</div>
+                  <div style="color: #8f8f8f; font-size: 0.72rem; margin-bottom: 4px">Walmart</div>
+                  <span class="pos">12</span><span class="pos map">Map 1</span>
+                </div>
+                <div>
+                  <div style="color: #fff; font-weight: 700; font-size: 0.8rem">timhortons.com</div>
+                  <div style="color: #8f8f8f; font-size: 0.72rem; margin-bottom: 4px">
+                    Tim Hortons
+                  </div>
+                  <span class="pos">14</span>
+                </div>
+                <div>
+                  <div style="color: #fff; font-weight: 700; font-size: 0.8rem">starbucks.com</div>
+                  <div style="color: #8f8f8f; font-size: 0.72rem; margin-bottom: 4px">
+                    Starbucks
+                  </div>
+                  <span class="pos">16</span><span class="pos ad">Ad 2</span>
+                </div>
+                <div>
+                  <div style="color: #fff; font-weight: 700; font-size: 0.8rem">yelp.com</div>
+                  <span class="pos map">Map 3</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout reveal">
+            A panel in the corner sums it up and copies to your clipboard as one line:
+            <code>"windows installer" -&gt; example.com: organic 24, ad 2, local 2</code>. That goes
+            straight into an email, a report or a ticket.
+          </div>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- install -->
+      <section id="install">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="eyebrow">Install</span>
+            <h2>About thirty seconds, no store required</h2>
+            <p class="lede">
+              This is not on the Chrome Web Store, so you load it directly. Chrome calls this an
+              unpacked extension. It is the same method extension developers use every day and it is
+              completely standard.
+            </p>
+          </div>
+
+          <ol class="steps">
+            <li class="step reveal">
+              <h3>Download and unzip</h3>
+              <p>
+                Grab the
+                <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest"
+                  >latest release zip</a
+                >
+                and unzip it. You get a folder called <code>GilmediaSERPCounter</code>. Put it
+                somewhere permanent on a local drive, not a network share or a synced cloud folder,
+                since Chrome reads these files constantly.
+              </p>
+            </li>
+
+            <li class="step reveal">
+              <h3>Open the extensions page</h3>
+              <p>
+                Type <code>chrome://extensions</code> into the address bar and press Enter. It will
+                not work from a link, so you do have to type it.
+              </p>
+              <div class="shot">
+                <div class="shot-bar">
+                  <span class="dots"><i></i><i></i><i></i></span>
+                  <span class="addr">chrome://extensions</span>
+                </div>
+              </div>
+            </li>
+
+            <li class="step reveal">
+              <h3>Turn on Developer mode</h3>
+              <p>
+                The toggle sits in the top right corner of that page. Without it, the Load unpacked
+                button stays hidden.
+              </p>
+              <div class="shot">
+                <div class="shot-body">
+                  <span class="grow">Developer mode</span>
+                  <span class="toggle" role="img" aria-label="toggle switched on"></span>
+                </div>
+              </div>
+            </li>
+
+            <li class="step reveal">
+              <h3>Load unpacked</h3>
+              <p>
+                Three buttons appear in the top left. Click <strong>Load unpacked</strong> and select
+                the <code>GilmediaSERPCounter</code> folder, the one with
+                <code>manifest.json</code> sitting directly inside it. Select the folder itself, not
+                a file within it.
+              </p>
+              <div class="shot">
+                <div class="shot-body">
+                  <span class="fake-btn hi">Load unpacked</span>
+                  <span class="fake-btn">Pack extension</span>
+                  <span class="fake-btn">Update</span>
+                </div>
+              </div>
+            </li>
+
+            <li class="step reveal">
+              <h3>Pin it to the toolbar</h3>
+              <p>
+                Click the puzzle piece icon next to the address bar, find Gilmedia SERP Counter and
+                click the pin. The orange G now sits next to your address bar.
+              </p>
+            </li>
+
+            <li class="step reveal">
+              <h3>Run a search</h3>
+              <p>
+                Go to Google and search for anything. Numbered badges appear beside every result and
+                the summary panel sits in the bottom right. Jump to page 2 and watch the numbers keep
+                going instead of resetting.
+              </p>
+            </li>
+          </ol>
+
+          <p class="callout reveal">
+            <strong>Updating later:</strong> replace the folder contents with the new version, then
+            click the circular refresh arrow on the extension's card in
+            <code>chrome://extensions</code>. Your tracked domains survive the update.
+          </p>
+        </div>
+      </section>
+
+      <!-- ----------------------------------------------------------- setup -->
+      <section id="setup">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="eyebrow">Setup</span>
+            <h2>Tell it what to look for</h2>
+            <p class="lede">
+              Click the orange G and add what you want tracked. Two fields, because Google shows a
+              URL in some places and a business name in others.
+            </p>
+          </div>
+
+          <div class="setup-grid">
+            <div class="reveal">
+              <div class="field">
+                <h3>Domain</h3>
+                <p>
+                  Matches organic results and Ads. Enter <code>example.com</code>, not the full URL.
+                  Subdomains match automatically, so <code>example.com</code> also catches
+                  <code>shop.example.com</code>.
+                </p>
+              </div>
+              <div class="field">
+                <h3>Business name</h3>
+                <p>
+                  Matches the local pack, Local Services Ads and Maps, where Google prints a name
+                  rather than a link. Partial is fine: <code>Northside</code> matches
+                  <code>Northside Windows and Doors</code>.
+                </p>
+              </div>
+              <div class="field">
+                <h3>Track more than one</h3>
+                <p>
+                  Add a client and two competitors and see all three positions on the same search.
+                  Your list syncs through your own Chrome profile, so it follows you to any machine
+                  you sign into.
+                </p>
+              </div>
+            </div>
+
+            <div class="popup reveal" aria-label="Illustration of the extension popup">
+              <div class="popup-head">GILMEDIA SERP COUNTER</div>
+              <div class="popup-body">
+                <div class="inp filled">example.com</div>
+                <div class="inp">Business name (optional)</div>
+                <div class="popup-row"><span class="sq"></span> Organic results</div>
+                <div class="popup-row"><span class="sq"></span> Google Ads</div>
+                <div class="popup-row"><span class="sq"></span> Local pack / Maps</div>
+                <div class="popup-row"><span class="sq"></span> Local Services Ads</div>
+                <div class="popup-row"><span class="sq"></span> Summary panel</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ------------------------------------------------------------- faq -->
+      <section id="faq">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="eyebrow">FAQ</span>
+            <h2>Reasonable questions</h2>
+          </div>
+
+          <div class="faq reveal">
+            <details>
+              <summary>Is this a rank tracker?</summary>
+              <p>
+                No, and it is worth being clear about that. Google personalises and localises
+                results, so this shows what your browser sees, from your location, signed into your
+                account. Two people running the same search get different pages.
+              </p>
+              <p>
+                Use it for spot checks, client calls and quick competitive looks. For trend data over
+                time you still want a proper rank tracking tool with a clean, consistent environment.
+              </p>
+            </details>
+
+            <details>
+              <summary>Is Developer mode safe?</summary>
+              <p>
+                Yes. It is a standard Chrome feature that lets you run an extension from a folder
+                rather than from the Web Store. The tradeoff is that you are trusting the source of
+                the folder, which is why the entire codebase here is public and readable.
+              </p>
+              <p>
+                Chrome will show a "Disable developer mode extensions" prompt on some updates. Click
+                Cancel or Keep, and the extension continues working.
+              </p>
+            </details>
+
+            <details>
+              <summary>What data does it collect?</summary>
+              <p>
+                None. There is no backend, no analytics and no network request of any kind. The only
+                permission requested is <code>storage</code>, used to save your tracked domains in
+                Chrome's own sync storage.
+              </p>
+            </details>
+
+            <details>
+              <summary>Why is it not on the Chrome Web Store?</summary>
+              <p>
+                Store review adds days to every change, and this tool tracks a moving target. Google
+                reshuffles its results markup regularly, and loading unpacked means a fix ships the
+                same hour it is written.
+              </p>
+            </details>
+
+            <details>
+              <summary>The numbers look wrong. Now what?</summary>
+              <p>
+                Google rewrites its HTML without notice. Detection here is structural rather than
+                keyed to Google's class names, which survives most redesigns, but nothing survives
+                all of them.
+              </p>
+              <p>
+                Open an issue on GitHub with the search you ran and the country you ran it from, and
+                it can be fixed. If a section genuinely cannot be read, the panel says so rather than
+                showing you a wrong number.
+              </p>
+            </details>
+
+            <details>
+              <summary>The local pack is not getting numbered</summary>
+              <p>
+                Google ships several different structures for that section and rotates between them.
+                Open the extension popup, tick <strong>Log detection to the console</strong>, reload
+                the search, then open DevTools and run <code>__gilSerpDiag()</code>.
+              </p>
+              <p>
+                That prints what each detection strategy matched. Paste the output into a GitHub
+                issue and the selectors can be corrected precisely rather than by guesswork.
+              </p>
+            </details>
+
+            <details>
+              <summary>Does it work in Edge, Brave or Arc?</summary>
+              <p>
+                Yes. Any Chromium browser loads unpacked extensions the same way. The extensions page
+                lives at <code>edge://extensions</code> in Edge and
+                <code>brave://extensions</code> in Brave.
+              </p>
+            </details>
+
+            <details>
+              <summary>Does it work on google.co.uk, google.ca and other regions?</summary>
+              <p>
+                It covers the common country domains including the UK, Canada, Australia, Ireland,
+                New Zealand, France, Germany, Spain, Italy, the Netherlands, Mexico, Brazil and
+                India. If yours is missing, open an issue and it takes one line to add.
+              </p>
+            </details>
+
+            <details>
+              <summary>Will it slow Google down?</summary>
+              <p>
+                No. It reads the page that has already loaded and adds a badge to each result. There
+                is nothing to fetch and nothing to wait for.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- --------------------------------------------------------- privacy -->
+      <section>
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <span class="eyebrow">Privacy</span>
+            <h2>Nothing leaves your browser</h2>
+          </div>
+          <div class="privacy reveal">
+            <div>
+              <h3>No collection</h3>
+              <p>No analytics, no telemetry, no usage reporting. Nothing is recorded anywhere.</p>
+            </div>
+            <div>
+              <h3>No server</h3>
+              <p>
+                There is no backend to send anything to. The extension makes zero network requests.
+              </p>
+            </div>
+            <div>
+              <h3>One permission</h3>
+              <p>
+                Only <code>storage</code>, so your tracked domains persist between sessions. That is
+                the whole list.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Built by <a href="https://www.gilmedia.com">Gilmedia</a></span>
+        <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">Source on GitHub</a>
+        <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/issues">Report an issue</a>
+        <span class="sp">MIT licensed</span>
+      </div>
+    </footer>
+
+    <script>
+      // Reveal on scroll. Progressive enhancement only: if IntersectionObserver
+      // is missing or motion is reduced, everything is simply visible already.
+      (function () {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var items = document.querySelectorAll('.reveal');
+        if (reduce || !('IntersectionObserver' in window)) {
+          items.forEach(function (el) {
+            el.classList.add('in');
+          });
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (!e.isIntersecting) return;
+              e.target.classList.add('in');
+              io.unobserve(e.target);
+            });
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.08 }
+        );
+        items.forEach(function (el) {
+          io.observe(el);
+        });
+      })();
+    </script>
+  </body>
+</html>

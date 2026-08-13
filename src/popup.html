@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Gilmedia SERP Counter</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        width: 380px;
+        margin: 0;
+        padding: 0;
+        background: #161616;
+        color: #f2f2f2;
+        font: 400 13px/1.45 Mulish, Arial, sans-serif;
+      }
+      header {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 12px 14px;
+        border-bottom: 1px solid #2a2a2a;
+      }
+      h1 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 700;
+        color: #f37333;
+        letter-spacing: 0.3px;
+      }
+      .ver {
+        font-size: 11px;
+        color: #777;
+      }
+      .count {
+        margin-left: auto;
+        font-size: 11px;
+        font-weight: 700;
+        color: #a9c489;
+      }
+      section {
+        padding: 12px 14px;
+        border-bottom: 1px solid #222;
+      }
+      section:last-of-type {
+        border-bottom: 0;
+      }
+      h2 {
+        margin: 0 0 6px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #8a8a8a;
+      }
+      .hint {
+        margin: 0 0 8px;
+        font-size: 11px;
+        color: #8a8a8a;
+      }
+      textarea {
+        width: 100%;
+        height: 190px;
+        padding: 9px 10px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        background: #1b1b1b;
+        color: #f2f2f2;
+        font: 400 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
+        resize: vertical;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: #f37333;
+      }
+      .bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      button {
+        border: 1px solid #3a3a3a;
+        background: #232323;
+        color: #ddd;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font: 700 11px/1.4 Mulish, Arial, sans-serif;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #2d2d2d;
+        border-color: #4a4a4a;
+      }
+      button.primary {
+        background: #f37333;
+        border-color: #f37333;
+        color: #161616;
+      }
+      button.primary:hover {
+        background: #ff8547;
+      }
+      button.danger {
+        color: #c99;
+      }
+      button.danger:hover {
+        border-color: #a33;
+        color: #f4a0a0;
+      }
+      /* Armed state: a second click within a few seconds actually wipes it. */
+      button.danger.armed {
+        background: #7a2020;
+        border-color: #a33;
+        color: #ffe2e2;
+      }
+      .status {
+        margin-left: auto;
+        font-size: 11px;
+        color: #8a8a8a;
+      }
+      .status.ok {
+        color: #a9c489;
+      }
+      .status.bad {
+        color: #e2a08a;
+      }
+      details {
+        margin-top: 8px;
+      }
+      summary {
+        cursor: pointer;
+        font-size: 11px;
+        color: #8a8a8a;
+        list-style: none;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      pre {
+        margin: 6px 0 0;
+        padding: 8px 10px;
+        background: #1b1b1b;
+        border: 1px solid #2b2b2b;
+        border-radius: 6px;
+        font: 400 11px/1.7 ui-monospace, Consolas, monospace;
+        color: #c9c4bd;
+        white-space: pre;
+        overflow-x: auto;
+      }
+      label.chk {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 0;
+        cursor: pointer;
+      }
+      label.chk input {
+        accent-color: #627d47;
+        width: 15px;
+        height: 15px;
+      }
+      code {
+        font-family: ui-monospace, Consolas, monospace;
+        background: #232323;
+        border: 1px solid #333;
+        border-radius: 4px;
+        padding: 1px 4px;
+        color: #f0c9ab;
+      }
+      footer {
+        padding: 10px 14px 14px;
+        border-top: 1px solid #2a2a2a;
+        font-size: 11px;
+        color: #6f6f6f;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>GILMEDIA SERP COUNTER</h1>
+      <span class="ver">v1.4</span>
+      <span class="count" id="count"></span>
+    </header>
+
+    <section>
+      <h2>Client list</h2>
+      <p class="hint">
+        One client per line: <code>domain | Client Name</code>. The name is optional. Only the
+        clients that actually appear on a search show up in the panel.
+      </p>
+      <textarea
+        id="clients"
+        spellcheck="false"
+        placeholder="walmart.com | Walmart"
+      ></textarea>
+      <div class="bar">
+        <button class="primary" id="save">Save list</button>
+        <button id="example">Load example</button>
+        <button id="clear" class="danger">Clear list</button>
+        <span class="status" id="status"></span>
+      </div>
+
+      <details>
+        <summary>Format and examples</summary>
+        <pre>
+walmart.com | Walmart
+starbucks.com | Starbucks
+timhortons.com | Tim Hortons
+
+# The business name is OPTIONAL.
+# A domain on its own matches organic results and Ads:
+yelp.com
+
+# A name on its own matches the local pack, LSA and Maps:
+Home Depot
+
+# Lines starting with # are ignored</pre
+        >
+        <p class="hint" style="margin-top: 8px">
+          The separator can be a pipe, a comma or a tab, so a paste straight out of a spreadsheet
+          works. Extra spaces are ignored, and the two columns can be in either order. The domain
+          matches organic results and Ads; the name matches the local pack, Local Services Ads and
+          Maps, where Google prints a business name instead of a URL. Give both for full coverage.
+        </p>
+      </details>
+    </section>
+
+    <section>
+      <h2>Show</h2>
+      <label class="chk"><input type="checkbox" id="showOrganic" /> Organic results</label>
+      <label class="chk"><input type="checkbox" id="showAds" /> Google Ads</label>
+      <label class="chk"><input type="checkbox" id="showLocal" /> Local pack / Maps</label>
+      <label class="chk"><input type="checkbox" id="showLsa" /> Local Services Ads</label>
+      <label class="chk"><input type="checkbox" id="showPanel" /> Summary panel</label>
+      <label class="chk"><input type="checkbox" id="debug" /> Log detection to the console</label>
+    </section>
+
+    <footer>Reload the results page after saving to re-check it.</footer>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
