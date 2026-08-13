@@ -76,6 +76,30 @@ Best position sorts to the top. Position chips are colour-coded by surface, matc
 
 Clients that did not appear are left out entirely, because with a full roster loaded the misses would bury the hits. When none of them appear you get a single line saying so, with a **why?** link that prints every domain on the page to the console.
 
+### The log keeps running as you page through
+
+Paging from 1 to 2 to 3 is a fresh page load each time, so findings would normally vanish the moment you clicked next. They don't. The panel keeps a **running log per search term**:
+
+```
+tracking "coffee toronto"
+3 of 48 clients across pages 1, 2, 3
+
+walmart.com
+Walmart              [3] [Ad 1 ·p3]
+
+starbucks.com
+Starbucks            [13]
+
+timhortons.com
+Tim Hortons          [24]
+```
+
+Go four pages deep and you get one cumulative answer for that search, not four separate snapshots. Revisiting a page you already saw adds nothing.
+
+Organic ranks are absolute, so `[24]` already tells you it came from page 3. Ad, LSA and map positions restart on every page, so those get the page appended (`Ad 1 ·p3`).
+
+It resets by itself when the search term changes. There is also a **reset** button in the panel header to clear it by hand. The log lives in the tab, so two tabs running different searches never interfere, and closing the tab clears it.
+
 ### Import and export
 
 **Export** downloads the list as a dated .txt file, so it can live in a shared drive or a repo.
@@ -145,6 +169,7 @@ node build/make-icons.js     # regenerate the PNG icons, no image editor needed
 node test/numbering.test.js  # numbering and detection (needs jsdom)
 node test/modules.test.js    # LSA vs Businesses vs organic separation
 node test/clients.test.js    # client list parsing and panel behaviour
+node test/running-log.test.js # cumulative log across pages, reset on new term
 ```
 
 If the local pack is ever missed, tick **Log detection to the console** in the popup, reload the search, and run `__gilSerpDiag()` in DevTools. It prints what every detection strategy matched plus sample markup, which turns a selector fix into a five-minute job instead of guesswork. 
@@ -160,6 +185,7 @@ build/make-icons.js     generates icons/*.png from code
 test/numbering.test.js  jsdom assertions on numbering and detection
 test/modules.test.js    locks LSA, Businesses and organic apart
 test/clients.test.js    jsdom assertions on list parsing and the panel
+test/running-log.test.js accumulation across pages, reset on a new query
 docs/index.html         the install guide page
 ```
 

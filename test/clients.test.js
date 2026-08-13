@@ -212,7 +212,7 @@ check(
 );
 check(
   'and names how many clients were checked',
-  /none of your 5 clients on this page/.test(
+  /none of your 5 clients found yet/.test(
     noHit.querySelector('#gil-serp-panel .gil-serp-miss').textContent
   ),
   true
@@ -284,9 +284,9 @@ check(
   ['homedepot.com', 'starbucks.com', 'timhortons.com', 'walmart.com']
 );
 check(
-  'the header counts matches against the roster',
+  'the header counts matches against the roster and names the page',
   busy.querySelector('#gil-serp-panel .gil-serp-found').textContent,
-  '4 of 5 clients on this page'
+  '4 of 5 clients on page 2'
 );
 
 const chipsFor = (dom) =>

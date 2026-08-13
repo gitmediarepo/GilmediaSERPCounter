@@ -198,6 +198,14 @@
   border-radius: 4px;
 }
 
+.gil-serp-term {
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: #8f8f8f;
+  font-style: italic;
+  word-break: break-word;
+}
+
 .gil-serp-found {
   margin-bottom: 6px;
   padding-bottom: 6px;

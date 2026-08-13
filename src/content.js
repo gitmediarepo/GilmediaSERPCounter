@@ -36,6 +36,48 @@
   let cfg = { ...DEFAULTS };
   let lastHosts = []; // every domain seen in the last scan, for the "why?" link
 
+  /* Running log for one search term.
+   *
+   * Paging from 1 to 2 to 3 is a fresh page load each time, so without this the
+   * panel would forget page 1 the moment you clicked page 2. Findings accumulate
+   * per query and reset only when the query changes.
+   *
+   * sessionStorage rather than chrome.storage: it is per tab, so two tabs
+   * running different searches never overwrite each other, and it clears itself
+   * when the tab closes. */
+  const SKEY = `${NS}-run`;
+
+  function queryKey() {
+    const p = new URLSearchParams(location.search);
+    return (p.get('q') || '').trim().toLowerCase();
+  }
+
+  /** 1-based page number, derived from the result offset. */
+  function currentPage() {
+    const per = parseInt(new URLSearchParams(location.search).get('num') || '10', 10) || 10;
+    return Math.floor(pageOffset() / per) + 1;
+  }
+
+  function loadRun(q) {
+    try {
+      const s = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
+      if (s && s.q === q) return s;
+    } catch {}
+    return { q, pages: [], entries: [] };
+  }
+
+  function saveRun(s) {
+    try {
+      sessionStorage.setItem(SKEY, JSON.stringify(s));
+    } catch {}
+  }
+
+  function clearRun() {
+    try {
+      sessionStorage.removeItem(SKEY);
+    } catch {}
+  }
+
   // ------------------------------------------------------------------ utils
 
   const isMaps = /\/maps(\/|$)/.test(location.pathname);
@@ -485,7 +527,7 @@
 
   // ------------------------------------------------------------------ panel
 
-  function renderPanel(sections, hits) {
+  function renderPanel(sections, hits, run) {
     let panel = document.getElementById(`${NS}-panel`);
     if (!cfg.showPanel) {
       if (panel) panel.remove();
@@ -510,44 +552,54 @@
       /* Every client that appears gets a row, with all of its positions across
        * every surface. Clients that did not appear are left out entirely: with
        * a full agency roster loaded, printing the misses would bury the hits. */
-      const byTarget = new Map();
-      for (const h of hits) {
-        if (!byTarget.has(h.target)) byTarget.set(h.target, []);
-        byTarget.get(h.target).push(h);
-      }
+      /* Read from the running log, not just this page, so paging 1 -> 2 -> 3
+       * builds one cumulative answer for the search term. Falls back to the
+       * current page on Maps, where there is no paging to accumulate. */
+      const entries = run
+        ? run.entries
+        : [...new Map(hits.map((h) => [h.target.label, h])).keys()].map((key) => ({
+            key,
+            name: '',
+            hits: hits.filter((h) => h.target.label === key),
+          }));
 
-      if (!byTarget.size) {
+      if (!entries.length) {
         lines.push(
-          `<div class="${NS}-row"><span class="${NS}-miss" data-act="why" title="Click to list every domain found on this page">none of your ${loaded} client${loaded === 1 ? '' : 's'} on this page &middot; why?</span></div>`
+          `<div class="${NS}-row"><span class="${NS}-miss" data-act="why" title="Click to list every domain found on this page">none of your ${loaded} client${loaded === 1 ? '' : 's'} found yet &middot; why?</span></div>`
         );
       } else {
         // Best position first, so the client ranking highest is at the top.
-        const rows = [...byTarget].sort(
-          (a, b) =>
-            Math.min(...a[1].map((h) => h.rank)) - Math.min(...b[1].map((h) => h.rank))
-        );
+        const rows = entries
+          .slice()
+          .sort((a, b) => Math.min(...a.hits.map((h) => h.rank)) - Math.min(...b.hits.map((h) => h.rank)));
 
+        const pages = run && run.pages.length ? run.pages : [currentPage()];
+        const scope =
+          pages.length > 1
+            ? `across pages ${pages.join(', ')}`
+            : `on page ${pages[0]}`;
         lines.push(
-          `<div class="${NS}-found">${rows.length} of ${loaded} client${loaded === 1 ? '' : 's'} on this page</div>`
+          `<div class="${NS}-found">${rows.length} of ${loaded} client${loaded === 1 ? '' : 's'} ${scope}</div>`
         );
 
-        for (const [t, mine] of rows) {
+        for (const e of rows) {
           // Order a client's own positions organic, local, LSA, then ads.
-          const rank = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
-          const chips = mine
+          const order = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
+          const chips = e.hits
             .slice()
-            .sort((a, b) => (rank[a.kind] - rank[b.kind]) || a.rank - b.rank)
-            .map(
-              (h) =>
-                `<span class="${NS}-pos ${NS}-pos--${esc(h.kind)}" title="${esc(h.title || '')}">${esc(h.label)}</span>`
-            )
+            .sort((a, b) => (order[a.kind] - order[b.kind]) || a.page - b.page || a.rank - b.rank)
+            .map((h) => {
+              /* An organic rank is absolute, so it already says which page it
+               * came from. Ad, LSA and map positions restart every page, so
+               * those need the page spelled out. */
+              const needsPage = h.kind !== 'organic' && pages.length > 1 && h.page;
+              const text = needsPage ? `${h.label} &middot;p${h.page}` : h.label;
+              return `<span class="${NS}-pos ${NS}-pos--${esc(h.kind)}" title="page ${esc(h.page || '?')}">${text}</span>`;
+            })
             .join('');
-          const sub =
-            t.ref && t.ref.domain && t.ref.name
-              ? `<span class="${NS}-sub">${esc(t.ref.name)}</span>`
-              : '';
+          const sub = e.name ? `<span class="${NS}-sub">${esc(e.name)}</span>` : '';
           lines.push(
-            `<div class="${NS}-row"><span class="${NS}-dom">${esc(t.label)}</span>${sub}${chips}</div>`
+            `<div class="${NS}-row"><span class="${NS}-dom">${esc(e.key)}</span>${sub}${chips}</div>`
           );
         }
       }
@@ -558,17 +610,28 @@
       .map((s) => `${s.label} ${s.count}`)
       .join(' &middot; ');
 
+    const term = run && run.q ? run.q : '';
     panel.innerHTML = `
       <div class="${NS}-head">
         <span class="${NS}-title">SERP Counter</span>
         <span class="${NS}-range">${esc(rangeLabel(sections))}</span>
-        <button class="${NS}-btn" data-act="copy" title="Copy a one-line summary">copy</button>
+        <button class="${NS}-btn" data-act="copy" title="Copy the running summary">copy</button>
+        ${run ? `<button class="${NS}-btn" data-act="reset" title="Clear the running log for this search">reset</button>` : ''}
         <button class="${NS}-btn" data-act="toggle">${collapsed ? '+' : '&minus;'}</button>
       </div>
       <div class="${NS}-body" ${collapsed ? 'hidden' : ''}>
+        ${term ? `<div class="${NS}-term">tracking &ldquo;${esc(term)}&rdquo;</div>` : ''}
         ${lines.join('')}
-        <div class="${NS}-meta">${counts || 'nothing detected on this page'}</div>
+        <div class="${NS}-meta">this page: ${counts || 'nothing detected'}</div>
       </div>`;
+
+    const resetBtn = panel.querySelector('[data-act="reset"]');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        clearRun();
+        scan();
+      });
+    }
 
     for (const el of panel.querySelectorAll('[data-act="why"]')) {
       el.style.cursor = 'pointer';
@@ -583,19 +646,28 @@
 
     panel.querySelector('[data-act="toggle"]').addEventListener('click', () => {
       localStorage.setItem(`${NS}-collapsed`, collapsed ? '0' : '1');
-      renderPanel(sections, hits);
+      renderPanel(sections, hits, run);
     });
     panel.querySelector('[data-act="copy"]').addEventListener('click', (e) => {
       const q = new URLSearchParams(location.search).get('q') || '';
-      const seen = new Map();
-      for (const h of hits) {
-        if (!seen.has(h.target)) seen.set(h.target, []);
-        seen.get(h.target).push(h.label);
+      let summary;
+      if (run && run.entries.length) {
+        // Copy the whole run, not just whatever page happens to be open.
+        summary = run.entries
+          .map((en) => `${en.key}: ${en.hits.map((h) => h.label).join(', ')}`)
+          .join(' | ');
+      } else {
+        const seen = new Map();
+        for (const h of hits) {
+          if (!seen.has(h.target)) seen.set(h.target, []);
+          seen.get(h.target).push(h.label);
+        }
+        summary = seen.size
+          ? [...seen].map(([t, labels]) => `${t.label}: ${labels.join(', ')}`).join(' | ')
+          : 'no tracked client found';
       }
-      const summary = seen.size
-        ? [...seen].map(([t, labels]) => `${t.label}: ${labels.join(', ')}`).join(' | ')
-        : 'no tracked client found';
-      navigator.clipboard.writeText(`"${q}" -> ${summary}`);
+      const scope = run && run.pages.length > 1 ? ` (pages ${run.pages.join(', ')})` : '';
+      navigator.clipboard.writeText(`"${q}"${scope} -> ${summary}`);
       e.target.textContent = 'copied';
       setTimeout(() => (e.target.textContent = 'copy'), 1200);
     });
@@ -680,9 +752,34 @@
       );
     }
 
+    // Fold this page's findings into the running log for this search term.
+    let run = null;
+    if (!isMaps) {
+      const q = queryKey();
+      const page = currentPage();
+      run = loadRun(q);
+      if (!run.pages.includes(page)) {
+        run.pages.push(page);
+        run.pages.sort((a, b) => a - b);
+      }
+      for (const h of hits) {
+        const key = h.target.label;
+        let entry = run.entries.find((e) => e.key === key);
+        if (!entry) {
+          entry = { key, name: (h.target.ref && h.target.ref.name) || '', hits: [] };
+          run.entries.push(entry);
+        }
+        const id = `${h.kind}|${h.rank}|${page}`;
+        if (!entry.hits.some((x) => x.id === id)) {
+          entry.hits.push({ id, kind: h.kind, rank: h.rank, page, label: h.label });
+        }
+      }
+      saveRun(run);
+    }
+
     lastHosts = [...hostsSeen].sort();
 
-    renderPanel(sections, hits);
+    renderPanel(sections, hits, run);
     document.dispatchEvent(new CustomEvent(`${NS}:painted`));
   }
 
