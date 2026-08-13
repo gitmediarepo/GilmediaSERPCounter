@@ -21,48 +21,61 @@ Numbers Google results by true rank across pages and highlights your whole clien
 
 **Detailed description**
 ```
-Google restarts result numbering on every page. Page 3 shows you 1 through 10 when those are really positions 21 through 30, and counting down the screen with a finger is how mistakes get into client reports.
+You know the drill. You search for the thing you sell, you don't see yourself on page one, so you click through to page two and start counting down the screen with your finger. One, two, three. Hang on, was that 14 or 15?
 
-SERP Counter numbers every result by its true rank, and highlights the sites you care about wherever they turn up.
+Google restarts the numbering on every page. Page three shows you 1 through 10. Those are really 21 through 30. Finger-counting is how the wrong number ends up in a report.
 
-WHAT IT NUMBERS
+This fixes that. Every result gets its actual position, and anything on your list turns green.
 
-- Organic results, continuing across pages: 21, 22, 23 rather than starting over
-- Google Ads, on their own scale, so a paid block never shifts your organic count
-- The local pack, on its own scale
-- Local Services Ads, on their own scale
-- Google Maps results
+WHO IT IS FOR
 
-Paid, local and organic are counted separately and colour-coded, so nothing contaminates anything else.
+Checking your own site
+Add your domain once and stop squinting. You get your real position instead of a guess. If you are on page four, you will know you are on page four, which is useful even when it stings.
 
-LOAD YOUR WHOLE LIST AT ONCE
+Running a business
+Add your domain and your business name. The name matters, because in the map results Google prints the business name and not the website. So you can see where you actually turn up when someone searches for what you do, in the local pack, in the ads, and in the ordinary results.
 
-Paste in every domain you track, one per line:
+Running an agency
+Paste in the whole client roster. Sixty lines is fine. Search once and the panel tells you which of your clients showed up and where, so you are not switching between profiles or keeping a spreadsheet open on the second monitor. Only the ones that actually appeared get listed, so you get a short answer rather than sixty rows of "nope".
+
+HOW THE LIST WORKS
+
+One client per line:
 
     example.com | Example Company
     anotherexample.com | Another Company
 
-The business name is optional. A domain on its own matches organic results and Ads. A name on its own matches the local pack, Local Services Ads and Maps, where Google prints a business name instead of a URL.
+The business name is optional. A domain on its own matches the ordinary results and the ads. A name on its own matches the local pack, Local Services Ads and Maps, where Google prints a business name instead of a web address. Give both and you are covered everywhere.
 
-Only the sites that actually appear show up in the summary panel. Sixty domains loaded and one on the page gives you one line, not sixty.
+WHAT IT COUNTS
+
+Organic results, numbered straight through. 21, 22, 23, not back to 1.
+Ads, counted separately, so a stack of them at the top does not shove your organic numbers around.
+The local pack, on its own count.
+Local Services Ads, on their own count.
+Google Maps results.
+
+Each type gets its own colour, so a paid position never gets mistaken for an organic one. That particular mix-up has made it into a client report before. Possibly yours.
 
 THE LOG KEEPS RUNNING
 
-Click through to page 2, then page 3, and findings accumulate into one cumulative answer for that search term rather than resetting each time. It clears itself when you change the search.
+Click to page two, then page three, and it remembers. You get one running answer for that search instead of fresh amnesia every time you click next. Change the search term and it clears itself.
 
-One click copies the whole run to your clipboard, ready to drop into an email or a report.
+One click copies the whole run to your clipboard when you want to paste it into an email.
 
-IMPORT AND EXPORT
+LISTS GO IN AND OUT
 
-Export your list as a file to share with colleagues. Import merges rather than overwriting, so re-importing the same file changes nothing.
+Export your list to a file, hand it to a colleague, import theirs. Importing merges instead of overwriting, so nobody's list gets flattened by accident.
 
-HONEST ABOUT WHAT IT IS NOT
+THE HONEST BIT
 
-This is not a rank tracker. Google personalises and localises results, so it reports what your browser sees, from your location, signed into your account. Use it for spot checks, client calls and quick competitive looks. For trend data over time you still want a proper rank tracking tool.
+This is not a rank tracker, and it would be a bit rich to pretend otherwise. Google personalises results by location and by whoever is signed in, so what you see is what your browser sees, from where you happen to be sitting. Ideal for a quick check or a client call. If you need clean trend data over months, get a proper rank tracker.
 
-PRIVACY
+It also will not change your rankings. It counts them. That is the entire job.
 
-No data collection. No analytics. No network requests of any kind. There is no server to send anything to. The only permission requested is storage, used to remember your own list. The full source code is public.
+PRIVACY, BRIEFLY
+
+No account. No analytics. No tracking of any kind. It makes no network requests at all, largely because there is nothing on the other end to talk to. Your list is saved in your own browser, and the only permission it asks for is storage, so it can remember that list between sessions. The source code is public if you would rather check than take our word for it.
 
 Built by Gilmedia. https://www.gilmedia.com/
 ```
