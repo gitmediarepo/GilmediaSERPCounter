@@ -33,7 +33,7 @@ Checking your own site
 Add your domain once and stop squinting. You get your real position instead of a guess. If you are on page four, you will know you are on page four, which is useful even when it stings.
 
 Running a business
-Add your domain and your business name. The name matters, because in the map results Google prints the business name and not the website. So you can see where you actually turn up when someone searches for what you do, in the local pack, in the ads, and in the ordinary results.
+Add your domain and your business name. The name matters, because the map results show a business name and not a website. So you can see where you actually turn up when someone searches for what you do, in the local pack, in the ads, and in the ordinary results.
 
 Running an agency
 Paste in the whole client roster. Sixty lines is fine. Search once and the panel tells you which of your clients showed up and where, so you are not switching between profiles or keeping a spreadsheet open on the second monitor. Only the ones that actually appeared get listed, so you get a short answer rather than sixty rows of "nope".
@@ -45,7 +45,7 @@ One client per line:
     example.com | Example Company
     anotherexample.com | Another Company
 
-The business name is optional. A domain on its own matches the ordinary results and the ads. A name on its own matches the local pack, Local Services Ads and Maps, where Google prints a business name instead of a web address. Give both and you are covered everywhere.
+The business name is optional. A domain on its own matches the ordinary results and the ads. A name on its own matches the local pack, Local Services Ads and Maps, where the listing shows a business name instead of a web address. Give both and you are covered everywhere.
 
 WHAT IT COUNTS
 
@@ -69,13 +69,15 @@ Export your list to a file, hand it to a colleague, import theirs. Importing mer
 
 THE HONEST BIT
 
-This is not a rank tracker, and it would be a bit rich to pretend otherwise. Google personalises results by location and by whoever is signed in, so what you see is what your browser sees, from where you happen to be sitting. Ideal for a quick check or a client call. If you need clean trend data over months, get a proper rank tracker.
+This is not a rank tracker, and it would be a bit rich to pretend otherwise. Search results are personalised by location and by whoever is signed in, so what you see is what your browser sees, from where you happen to be sitting. Ideal for a quick check or a client call. If you need clean trend data over months, get a proper rank tracker.
 
 It also will not change your rankings. It counts them. That is the entire job.
 
 PRIVACY, BRIEFLY
 
 No account. No analytics. No tracking of any kind. It makes no network requests at all, largely because there is nothing on the other end to talk to. Your list is saved in your own browser, and the only permission it asks for is storage, so it can remember that list between sessions. The source code is public if you would rather check than take our word for it.
+
+Not affiliated with, endorsed by, or sponsored by Google.
 
 Built by Gilmedia. https://www.gilmedia.com/
 ```
@@ -156,4 +158,5 @@ https://gitmediarepo.github.io/GilmediaSERPCounter/privacy.html
 1. Complete the trader declaration in the developer console.
 2. Set the publisher display name to Gilmedia and the website to https://www.gilmedia.com/.
 3. Upload `dist/serp-counter-store-v<version>.zip`, built by `node build/store-package.js`. Note this is a DIFFERENT zip from the GitHub release: the store requires manifest.json at the root of the archive, and a nested folder is rejected.
-4. Review typically takes a few days. Broad host permissions get a closer look, which is why the justification above spells out that the extension runs only on Google search pages.
+4. Expect manual review and allow longer than a few days. Anything that runs on Google's own search pages gets closer human scrutiny as a matter of practice, even with zero host_permissions declared. That is not a policy problem, just a timing one.
+5. Keep "Google" mentions in the description at or below 5. The listing policy treats unnatural repetition beyond that as keyword spam. It currently sits at 3.
