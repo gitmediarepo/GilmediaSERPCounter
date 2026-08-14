@@ -144,12 +144,24 @@ https://gitmediarepo.github.io/GilmediaSERPCounter/privacy.html
 
 ## Graphic assets required
 
-| Asset | Size | Required |
+All built and sitting in `assets/`. Sizes and colour depth already match what the
+upload panel demands, so nothing needs converting.
+
+| Asset | Spec | File |
 |---|---|---|
-| Store icon | 128x128 PNG | Yes, already in the package |
-| Screenshot | 1280x800 PNG | Yes, at least 1, up to 5 |
-| Small promo tile | 440x280 PNG | Yes |
-| Marquee promo tile | 1400x560 PNG | Optional, needed for featuring |
+| Store icon | 128x128 canvas, 96x96 artwork, 16px transparent padding | `store-icon-128.png` |
+| Screenshot | 1280x800, 24-bit PNG, no alpha | `store-screenshot-1.png`, `store-screenshot-2.png` |
+| Small promo tile | 440x280, 24-bit PNG, no alpha | `store-tile-440x280.png` |
+| Marquee promo tile | 1400x560, 24-bit PNG, no alpha | `store-marquee-1400x560.png` |
+
+The store icon is NOT the one in `icons/`. Those are full-bleed because a
+16-pixel toolbar button cannot afford to throw away a quarter of itself to
+padding. The store wants the opposite. `node build/make-store-icon.js` builds
+the store version; `node build/make-icons.js` builds the toolbar set. Same mark
+from the same source, two canvases.
+
+Do not upload `bg-wide.png` or `bg-marquee.png`. Those are the raw generated
+backgrounds the finished graphics were composited on top of.
 
 ---
 
