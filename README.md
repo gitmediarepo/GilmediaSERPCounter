@@ -8,7 +8,7 @@ Page 3 looks like 1-10 when it is really 21-30. This extension numbers every res
 
 ### [→ Add to Chrome](https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg)
 
-[Install guide](https://gitmediarepo.github.io/GilmediaSERPCounter/) · [Install](#install) · [Setup](#setup) · [How it works](#how-it-works) · [Limits](#known-limits)
+[Install guide](https://gitmediarepo.github.io/GilmediaSERPCounter/) · [Support](https://gitmediarepo.github.io/GilmediaSERPCounter/support.html) · [Setup](#setup) · [How it works](#how-it-works) · [Limits](#known-limits)
 
 </div>
 
