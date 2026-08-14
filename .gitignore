@@ -9,3 +9,6 @@ Thumbs.db
 clients/
 
 dist/
+
+# local working docs, not for the public repo
+_local/
