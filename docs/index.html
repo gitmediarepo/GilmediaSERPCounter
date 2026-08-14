@@ -6,7 +6,7 @@
     <title>Gilmedia SERP Counter - true rank numbering for Google results</title>
     <meta
       name="description"
-      content="Chrome extension that numbers Google results by true rank across pages. Load your whole client list and see which of them appear in organic, Ads, the local pack, LSA and Maps."
+      content="Chrome extension that numbers Google results by true rank across pages. Load your whole domain list and see which of them appear in organic, Ads, the local pack, LSA and Maps."
     />
     <meta property="og:title" content="Gilmedia SERP Counter" />
     <meta
@@ -1029,10 +1029,10 @@
           </dl>
 
           <div class="sec-head reveal" style="margin-top: var(--space-24)">
-            <span class="eyebrow">Client list</span>
-            <h2>Load every client once</h2>
+            <span class="eyebrow">Domain list</span>
+            <h2>Load every domain once</h2>
             <p class="lede">
-              Paste your whole roster into the popup, one client per line. Every search then tells
+              Paste your whole roster into the popup, one domain per line. Every search then tells
               you which of them showed up, with no switching between profiles.
             </p>
           </div>
@@ -1040,7 +1040,7 @@
           <div class="shot reveal" style="max-width: 640px">
             <div class="shot-bar">
               <span class="dots"><i></i><i></i><i></i></span>
-              <span class="addr">domain | Client Name</span>
+              <span class="addr">domain | Business Name</span>
             </div>
             <pre
               style="
@@ -1085,8 +1085,8 @@ timhortons.com | Tim Hortons</span>
             <div>
               <h3>Every match, all its positions</h3>
               <p>
-                Each client that appears gets a row listing all of its positions at once, best
-                first. Clients that did not appear are left out, so the hits are never buried.
+                Each domain that appears gets a row listing all of its positions at once, best
+                first. Entries that did not appear are left out, so the hits are never buried.
               </p>
             </div>
           </div>
@@ -1106,7 +1106,7 @@ timhortons.com | Tim Hortons</span>
                   border-bottom: 1px solid #2c2c2c;
                 "
               >
-                4 OF 60 CLIENTS ON THIS PAGE
+                4 OF 60 DOMAINS ON THIS PAGE
               </div>
               <div style="display: grid; gap: 10px; padding-top: 10px">
                 <div>
@@ -1257,9 +1257,19 @@ timhortons.com | Tim Hortons</span>
               <div class="field">
                 <h3>Track more than one</h3>
                 <p>
-                  Add a client and two competitors and see all three positions on the same search.
+                  Add your own domain and two competitors and see all three positions on the same search.
                   Your list syncs through your own Chrome profile, so it follows you to any machine
                   you sign into.
+                </p>
+              </div>
+              <div class="field">
+                <h3>A long list gets a manager</h3>
+                <p>
+                  Past a couple of dozen domains a textarea stops being pleasant, so
+                  <strong>Manage</strong> opens a full page: one row per domain, search by domain or
+                  business name, sort, and a duplicate check that filters down to the rows that
+                  repeat. Everything saves as you type, and comment lines stay exactly where you put
+                  them.
                 </p>
               </div>
             </div>

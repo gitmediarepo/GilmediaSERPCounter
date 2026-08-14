@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Gilmedia SERP Counter",
-  "version": "1.7.0",
-  "description": "Numbers Google results by true rank across pages and highlights your whole client list in organic, Ads, local pack and Maps.",
+  "version": "1.8.0",
+  "description": "Numbers Google results by true rank across pages and highlights your whole domain list in organic, Ads, local pack and Maps.",
   "permissions": ["storage"],
   "content_scripts": [
     {
@@ -33,6 +33,10 @@
       "all_frames": false
     }
   ],
+  "options_ui": {
+    "page": "src/options.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_popup": "src/popup.html",
     "default_title": "Gilmedia SERP Counter",

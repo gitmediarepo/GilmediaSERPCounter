@@ -4,7 +4,7 @@
 
 **Google restarts result numbering on every page. This fixes that.**
 
-Page 3 looks like 1-10 when it is really 21-30. This extension numbers every result by its true rank, and marks your clients in green wherever they appear: organic, Ads, the local pack, Local Services Ads and Maps.
+Page 3 looks like 1-10 when it is really 21-30. This extension numbers every result by its true rank, and marks the domains you care about in green wherever they appear: organic, Ads, the local pack, Local Services Ads and Maps.
 
 ### [→ Add to Chrome](https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg)
 
@@ -26,9 +26,9 @@ Page 3 looks like 1-10 when it is really 21-30. This extension numbers every res
 
 Paid, local and organic each count on their own scale, so an ad block at the top never shifts your organic numbers. Badges are circular, colour-coded by surface, and non-organic ones carry a small type tag so a violet 2 is never mistaken for an organic 2.
 
-## Load your whole client list
+## Load your whole domain list
 
-Paste every client you manage into the popup, one per line, and each search tells you which of them showed up. Nothing to select, nothing to switch between.
+Paste every domain you want to watch into the popup, one per line, and each search tells you which of them showed up. Nothing to select, nothing to switch between.
 
 ```
 walmart.com | Walmart
@@ -51,14 +51,14 @@ The separator can be a pipe, a comma or a tab, so a paste straight out of a spre
 
 - The **domain** alone matches organic results and Ads. Subdomains match automatically, so `example.com` also catches `shop.example.com`.
 - The **name** alone matches the local pack, Local Services Ads and Maps, where Google prints a business name instead of a URL.
-- **Both** covers every surface, which is what you want for most clients.
+- **Both** covers every surface, which is what you want most of the time.
 
 ### What the panel shows
 
-Every client that appears gets its own row, listing **all** of its positions across every surface at once:
+Every domain that appears gets its own row, listing **all** of its positions across every surface at once:
 
 ```
-4 of 60 clients on this page
+4 of 60 domains on this page
 
 walmart.com
 Walmart              [12] [Map 1]
@@ -74,7 +74,7 @@ yelp.com             [Map 3]
 
 Best position sorts to the top. Position chips are colour-coded by surface, matching the badge on the result itself. The list scrolls inside the panel, so a busy search with a dozen matches never runs off the bottom of the screen.
 
-Clients that did not appear are left out entirely, because with a full roster loaded the misses would bury the hits. When none of them appear you get a single line saying so, with a **why?** link that prints every domain on the page to the console.
+Entries that did not appear are left out entirely, because with a full roster loaded the misses would bury the hits. When none of them appear you get a single line saying so, with a **why?** link that prints every domain on the page to the console.
 
 ### The log keeps running as you page through
 
@@ -82,7 +82,7 @@ Paging from 1 to 2 to 3 is a fresh page load each time, so findings would normal
 
 ```
 tracking "coffee toronto"
-3 of 48 clients across pages 1, 2, 3
+3 of 48 domains across pages 1, 2, 3
 
 walmart.com
 Walmart              [3] [Ad 1 ·p3]
@@ -104,7 +104,7 @@ It resets by itself when the search term changes. There is also a **reset** butt
 
 **Export** downloads the list as a dated .txt file, so it can live in a shared drive or a repo.
 
-**Import** merges rather than overwriting: only clients not already on the list get added, so re-importing the same file twice is a no-op. Three ways in:
+**Import** merges rather than overwriting: only entries not already on the list get added, so re-importing the same file twice is a no-op. Three ways in:
 
 - the **Import** button, which opens a file picker
 - dragging a .txt or .csv straight onto the box
@@ -145,9 +145,21 @@ Works in any Chromium browser: Chrome, Edge, Brave, Opera, Arc.
 
 ## Setup
 
-Click the icon, paste your list into the box and hit **Save list**. The counter in the header confirms how many clients it parsed.
+Click the icon, paste your list into the box and hit **Save list**. The counter in the header confirms how many domains it parsed.
 
-Your list syncs through your own Chrome profile, so it follows you to any machine you sign into. Add competitors alongside clients and one search shows you both.
+Your list syncs through your own Chrome profile, so it follows you to any machine you sign into. Add competitors alongside your own domains and one search shows you both.
+
+### The manager
+
+Past a couple of dozen domains, editing a textarea stops being pleasant. **Manage** in the popup opens a full page with one row per domain:
+
+- **Search** by domain or business name and edit the row you land on
+- **Duplicates** flags every domain that appears more than once and filters down to just those rows
+- **Sort** by domain or business name without changing the file
+- **Add** and **Remove** single rows, plus import, export and clear
+- **Bulk edit** drops back to the raw text whenever that is faster
+
+Everything saves as you type. Comment lines are preserved exactly where they are, so a file with `# Parked` sections survives being edited in the table.
 
 ## How it works
 
@@ -174,8 +186,11 @@ Nothing leaves your browser. There is no backend, no analytics, no network reque
 node build/make-icons.js     # regenerate the PNG icons, no image editor needed
 node test/numbering.test.js  # numbering and detection (needs jsdom)
 node test/modules.test.js    # LSA vs Businesses vs organic separation
-node test/clients.test.js    # client list parsing and panel behaviour
+node test/domains.test.js    # domain list parsing and panel behaviour
 node test/running-log.test.js # cumulative log across pages, reset on new term
+node test/manager.test.js    # line model, comment preservation, duplicates
+node test/options-page.test.js # the manager page driven end to end
+node test/popup-page.test.js # the popup driven end to end
 ```
 
 If the local pack is ever missed, tick **Log detection to the console** in the popup, reload the search, and run `__gilSerpDiag()` in DevTools. It prints what every detection strategy matched plus sample markup, which turns a selector fix into a five-minute job instead of guesswork. 
@@ -186,12 +201,17 @@ The test builds a fake results page using the shapes Google actually ships, then
 manifest.json           MV3 manifest, host permissions per Google ccTLD
 src/content.js          detection, numbering, highlighting, summary panel
 src/serp.css            badge and panel styles
-src/popup.html/.js      client list, display toggles
+src/popup.html/.js      domain list, display toggles
+src/options.html/.js    the manager: search, rows, duplicate check
+src/parse.js            list parsing, shared by the popup and the manager
 build/make-icons.js     generates icons/*.png from code
 test/numbering.test.js  jsdom assertions on numbering and detection
 test/modules.test.js    locks LSA, Businesses and organic apart
-test/clients.test.js    jsdom assertions on list parsing and the panel
+test/domains.test.js    jsdom assertions on list parsing and the panel
 test/running-log.test.js accumulation across pages, reset on a new query
+test/manager.test.js    line model, comment preservation, duplicate detection
+test/options-page.test.js drives the real manager page against stub storage
+test/popup-page.test.js drives the real popup against stub storage
 docs/index.html         the install guide page
 ```
 

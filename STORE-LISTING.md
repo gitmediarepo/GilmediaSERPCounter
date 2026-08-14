@@ -13,7 +13,7 @@ Gilmedia SERP Counter
 
 **Short description** (132 max, this is the manifest description and cannot differ)
 ```
-Numbers Google results by true rank across pages and highlights your whole client list in organic, Ads, local pack and Maps.
+Numbers Google results by true rank across pages and highlights your whole domain list in organic, Ads, local pack and Maps.
 ```
 
 **Category:** Workflow & Planning
@@ -36,11 +36,11 @@ Running a business
 Add your domain and your business name. The name matters, because the map results show a business name and not a website. So you can see where you actually turn up when someone searches for what you do, in the local pack, in the ads, and in the ordinary results.
 
 Running an agency
-Paste in the whole client roster. Sixty lines is fine. Search once and the panel tells you which of your clients showed up and where, so you are not switching between profiles or keeping a spreadsheet open on the second monitor. Only the ones that actually appeared get listed, so you get a short answer rather than sixty rows of "nope".
+Paste in the whole list. Sixty lines is fine. Search once and the panel tells you which of your domains showed up and where, so you are not switching between profiles or keeping a spreadsheet open on the second monitor. Only the ones that actually appeared get listed, so you get a short answer rather than sixty rows of "nope".
 
 HOW THE LIST WORKS
 
-One client per line:
+One domain per line:
 
     example.com | Example Company
     anotherexample.com | Another Company

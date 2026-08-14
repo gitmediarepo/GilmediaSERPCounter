@@ -4,9 +4,9 @@
  *   1. Number every result by its TRUE rank. Google restarts visual counting on
  *      every page, so page 3 looks like 1-10 when it is really 21-30. We read
  *      the `start` offset out of the URL and number from there.
- *   2. Take a whole client list and mark whichever of them appear, across
+ *   2. Take a whole domain list and mark whichever of them appear, across
  *      organic, Ads, the local pack, Local Services Ads and Maps. Only the
- *      clients that actually turn up get a line in the panel.
+ *      domains that actually turn up get a line in the panel.
  *
  * Google's markup changes without warning, so nothing here leans on a single
  * class name. Detection is structural first (a heading inside a link inside the
@@ -460,7 +460,7 @@
 
   // --------------------------------------------------------------- matching
 
-  /* Built once per scan from cfg.targets, so a hundred-client list costs one
+  /* Built once per scan from cfg.targets, so a hundred-domain list costs one
    * pass rather than one pass per result. */
   function normalisedTargets() {
     return cfg.targets
@@ -468,7 +468,7 @@
         ref: t,
         domain: cleanHost(t.domain),
         name: (t.name || '').trim().toLowerCase(),
-        label: t.domain || t.name || 'client',
+        label: t.domain || t.name || 'domain',
       }))
       .filter((t) => t.domain || t.name);
   }
@@ -476,7 +476,7 @@
   /* Domains are the reliable signal for organic and ads. Business names are the
    * only signal in the local pack, LSA and Maps, where Google prints a name and
    * no URL. Matching a name inside an organic title is allowed but kept to
-   * names of real length, because with a long client list short names throw
+   * names of real length, because with a long domain list short names throw
    * false positives all over the page. */
   function matchTarget(entry, targets, kind) {
     const isLocalish = kind === 'local' || kind === 'lsa' || kind === 'maps';
@@ -568,12 +568,12 @@
 
     if (!loaded) {
       lines.push(
-        `<div class="${NS}-empty">No clients loaded. Click the extension icon and paste your list.</div>`
+        `<div class="${NS}-empty">No domains loaded. Click the extension icon and paste your list.</div>`
       );
     } else {
-      /* Every client that appears gets a row, with all of its positions across
-       * every surface. Clients that did not appear are left out entirely: with
-       * a full agency roster loaded, printing the misses would bury the hits. */
+      /* Every domain that appears gets a row, with all of its positions across
+       * every surface. Entries that did not appear are left out entirely: with
+       * a long list loaded, printing the misses would bury the hits. */
       /* Read from the running log, not just this page, so paging 1 -> 2 -> 3
        * builds one cumulative answer for the search term. Falls back to the
        * current page on Maps, where there is no paging to accumulate. */
@@ -587,10 +587,10 @@
 
       if (!entries.length) {
         lines.push(
-          `<div class="${NS}-row"><span class="${NS}-miss" data-act="why" title="Click to list every domain found on this page">none of your ${loaded} client${loaded === 1 ? '' : 's'} found yet &middot; why?</span></div>`
+          `<div class="${NS}-row"><span class="${NS}-miss" data-act="why" title="Click to list every domain found on this page">none of your ${loaded} domain${loaded === 1 ? '' : 's'} found yet &middot; why?</span></div>`
         );
       } else {
-        // Best position first, so the client ranking highest is at the top.
+        // Best position first, so the domain ranking highest is at the top.
         const rows = entries
           .slice()
           .sort((a, b) => Math.min(...a.hits.map((h) => h.rank)) - Math.min(...b.hits.map((h) => h.rank)));
@@ -601,11 +601,11 @@
             ? `across pages ${pages.join(', ')}`
             : `on page ${pages[0]}`;
         lines.push(
-          `<div class="${NS}-found">${rows.length} of ${loaded} client${loaded === 1 ? '' : 's'} ${scope}</div>`
+          `<div class="${NS}-found">${rows.length} of ${loaded} domain${loaded === 1 ? '' : 's'} ${scope}</div>`
         );
 
         for (const e of rows) {
-          // Order a client's own positions organic, local, LSA, then ads.
+          // Order one entry's own positions organic, local, LSA, then ads.
           const order = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
           const chips = e.hits
             .slice()
@@ -692,7 +692,7 @@
         }
         summary = seen.size
           ? [...seen].map(([t, labels]) => `${t.label}: ${labels.join(', ')}`).join(' | ')
-          : 'no tracked client found';
+          : 'no tracked domain found';
       }
       const scope = run && run.pages.length > 1 ? ` (pages ${run.pages.join(', ')})` : '';
       navigator.clipboard.writeText(`"${q}"${scope} -> ${summary}`);

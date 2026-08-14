@@ -181,28 +181,46 @@
         font-size: 11px;
         color: #6f6f6f;
       }
+      footer .credit {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #222;
+        color: #5f5f5f;
+      }
+      footer a {
+        color: #8a8a8a;
+        text-decoration: none;
+        border-bottom: 1px solid #333;
+      }
+      footer a:hover {
+        color: #f37333;
+        border-bottom-color: #f37333;
+      }
     </style>
   </head>
   <body>
     <header>
       <h1>GILMEDIA SERP COUNTER</h1>
-      <span class="ver">v1.7</span>
+      <span class="ver">v1.8</span>
       <span class="count" id="count"></span>
     </header>
 
     <section>
-      <h2>Client list</h2>
+      <h2>Domain list</h2>
       <p class="hint">
-        One client per line: <code>domain | Client Name</code>. The name is optional. Only the
-        clients that actually appear on a search show up in the panel.
+        One domain per line: <code>domain | Business Name</code>. The name is optional. Only the
+        domains that actually appear on a search show up in the panel.
       </p>
       <textarea
-        id="clients"
+        id="domains"
         spellcheck="false"
         placeholder="walmart.com | Walmart"
       ></textarea>
       <div class="bar">
         <button class="primary" id="save">Save list</button>
+        <button id="manage" title="Open the full manager: search, edit rows, find duplicates">
+          Manage
+        </button>
         <button id="import" title="Merge a .txt or .csv list into this one">Import</button>
         <button id="export" title="Download the list as a .txt file">Export</button>
         <button id="example">Example</button>
@@ -212,7 +230,8 @@
       <input type="file" id="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden />
       <p class="hint" style="margin: 8px 0 0">
         Import merges, it never overwrites. You can also drag a file straight onto the box, or just
-        paste. Use <b>Clear</b> first if you want to replace the list outright.
+        paste. Use <b>Clear</b> first if you want to replace the list outright. For a long list,
+        <b>Manage</b> opens a full page with search, one row per domain and a duplicate check.
       </p>
 
       <details>
@@ -250,8 +269,22 @@ Home Depot
       <label class="chk"><input type="checkbox" id="debug" /> Log detection to the console</label>
     </section>
 
-    <footer>Reload the results page after saving to re-check it.</footer>
+    <footer>
+      <div>Reload the results page after saving to re-check it.</div>
+      <div class="credit">
+        Built by
+        <a href="https://www.gilmedia.com" target="_blank" rel="noopener noreferrer">Gilmedia</a>
+        &middot;
+        <a
+          href="https://gitmediarepo.github.io/GilmediaSERPCounter/support.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Support</a
+        >
+      </div>
+    </footer>
 
+    <script src="parse.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

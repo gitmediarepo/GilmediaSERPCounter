@@ -103,9 +103,9 @@ check(
   ['starbucks.com', 'timhortons.com', 'walmart.com']
 );
 check('scope names all three pages', /across pages 1, 2, 3/.test(panelText(doc)), true);
-check('the count is cumulative', /3 of 3 clients/.test(panelText(doc)), true);
+check('the count is cumulative', /3 of 3 domains/.test(panelText(doc)), true);
 check(
-  'a client found on two pages keeps both, and the ad chip names its page',
+  'a domain found on two pages keeps both, and the ad chip names its page',
   chips(doc, 'walmart.com'),
   ['3', 'Ad 1 ·p3']
 );

@@ -1,5 +1,5 @@
 /* The client list parser, and the panel behaviour when a whole agency roster is
- * loaded: only the clients that actually appear get a line.
+ * loaded: only the domains that actually appear get a line.
  *
  * Run: node test/clients.test.js      (needs jsdom on NODE_PATH)
  */
@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const { JSDOM } = require('jsdom');
 
-const POPUP = fs.readFileSync(path.join(__dirname, '..', 'src', 'popup.js'), 'utf8');
+const PARSE = fs.readFileSync(path.join(__dirname, '..', 'src', 'parse.js'), 'utf8');
 const CONTENT = fs.readFileSync(path.join(__dirname, '..', 'src', 'content.js'), 'utf8');
 
 let failures = 0;
@@ -22,37 +22,33 @@ function check(label, actual, expected) {
 
 // ------------------------------------------------------------ parser
 
-/* popup.js expects its own DOM, so evaluate it against a stub page and then
- * reach in for parseClients. */
+/* parse.js is a plain script shared by the popup and the manager, so it can be
+ * evaluated on its own and reached into directly. */
 function loadParser() {
-  const dom = new JSDOM(
-    `<!doctype html><body>
-       <span id="count"></span><span id="status"></span>
-       <textarea id="clients"></textarea>
-       <button id="save"></button><button id="example"></button><button id="clear"></button>
-       <button id="import"></button><button id="export"></button>
-       <input type="file" id="file">
-       <a id="dl"></a>
-       ${['showOrganic', 'showAds', 'showLocal', 'showLsa', 'showPanel', 'debug']
-         .map((id) => `<input type="checkbox" id="${id}">`)
-         .join('')}
-     </body>`,
-    { url: 'https://example.org', runScripts: 'outside-only' }
-  );
-  dom.window.chrome = {
-    storage: { sync: { get: (d, cb) => cb(d), set: (o, cb) => cb && cb() } },
-    runtime: {},
-  };
+  const dom = new JSDOM('<!doctype html><body></body>', {
+    url: 'https://example.org',
+    runScripts: 'outside-only',
+  });
   // Top-level function declarations land on the window.
   dom.window.eval(
-    POPUP + '\n;window.__parseClients = parseClients; window.__mergeText = mergeText;'
+    PARSE +
+      '\n;window.__parseDomains = parseDomains;' +
+      'window.__mergeText = mergeText;' +
+      'window.__parseLines = parseLines;' +
+      'window.__serializeLines = serializeLines;' +
+      'window.__duplicateKeys = duplicateKeys;' +
+      'window.__dupeKeyFor = dupeKeyFor;'
   );
   return dom.window;
 }
 
 const popupWin = loadParser();
-const parse = popupWin.__parseClients;
+const parse = popupWin.__parseDomains;
 const merge = popupWin.__mergeText;
+const parseLines = popupWin.__parseLines;
+const serializeLines = popupWin.__serializeLines;
+const duplicateKeys = popupWin.__duplicateKeys;
+const dupeKeyFor = popupWin.__dupeKeyFor;
 
 check(
   'domain | name, the documented format',
@@ -211,8 +207,8 @@ check(
   1
 );
 check(
-  'and names how many clients were checked',
-  /none of your 5 clients found yet/.test(
+  'and names how many domains were checked',
+  /none of your 5 domains found yet/.test(
     noHit.querySelector('#gil-serp-panel .gil-serp-miss').textContent
   ),
   true
@@ -224,9 +220,9 @@ check(
   5
 );
 
-// ------------------------------------- many clients matching at once
+// ------------------------------------- many domains matching at once
 
-/* The panel has to carry a full result: several clients, each with every
+/* The panel has to carry a full result: several domains, each with every
  * position it holds across organic, Ads and the local pack. */
 function runBusySerp() {
   const ads = `<div id="tads">
@@ -277,7 +273,7 @@ const busy = runBusySerp();
 const panelRows = [...busy.querySelectorAll('#gil-serp-panel .gil-serp-row')];
 const names = panelRows.map((r) => r.querySelector('.gil-serp-dom').textContent);
 
-check('every matching client gets its own row', panelRows.length, 4);
+check('every matching domain gets its own row', panelRows.length, 4);
 check(
   'and they are all there',
   names.slice().sort(),
@@ -286,7 +282,7 @@ check(
 check(
   'the header counts matches against the roster and names the page',
   busy.querySelector('#gil-serp-panel .gil-serp-found').textContent,
-  '4 of 5 clients on page 2'
+  '4 of 5 domains on page 2'
 );
 
 const chipsFor = (dom) =>
@@ -295,7 +291,7 @@ const chipsFor = (dom) =>
     .querySelectorAll('.gil-serp-pos');
 
 check(
-  'a client appearing twice shows both positions',
+  'a domain appearing twice shows both positions',
   [...chipsFor('starbucks.com')].map((c) => c.textContent),
   ['12', 'Map 1']
 );
@@ -305,12 +301,12 @@ check(
   ['14']
 );
 check(
-  'an ad-only client still shows, tagged as an ad',
+  'an ad-only entry still shows, tagged as an ad',
   [...chipsFor('homedepot.com')].map((c) => c.textContent),
   ['16', 'Ad 2']
 );
 check(
-  'a local-only client shows its map position',
+  'a local-only entry shows its map position',
   [...chipsFor('walmart.com')].map((c) => c.textContent),
   ['Map 3']
 );
