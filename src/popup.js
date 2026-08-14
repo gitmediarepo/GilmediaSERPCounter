@@ -11,6 +11,8 @@
 const DEFAULTS = {
   targets: [],
   domainsText: '',
+  enabled: true,
+  showMentions: true,
   clientsText: '', // pre-1.8 key, read once and migrated
   showOrganic: true,
   showAds: true,
@@ -20,7 +22,7 @@ const DEFAULTS = {
   debug: false,
 };
 
-const TOGGLES = ['showOrganic', 'showAds', 'showLocal', 'showLsa', 'showPanel'];
+const TOGGLES = ['showOrganic', 'showAds', 'showLocal', 'showLsa', 'showMentions', 'showPanel'];
 
 /* Well-known public brands, never anyone's real list. */
 const EXAMPLE = `walmart.com | Walmart
@@ -92,6 +94,22 @@ chrome.storage.sync.get(DEFAULTS, (cfg) => {
   const dbg = $('debug');
   dbg.checked = cfg.debug === true;
   dbg.addEventListener('change', () => chrome.storage.sync.set({ debug: dbg.checked }));
+
+  /* Master switch. Off means the content script leaves Google's page alone
+   * entirely, which is the point: one click when someone is looking over your
+   * shoulder, not a settings hunt. */
+  const master = $('enabled');
+  const paintMaster = () => {
+    $('master').classList.toggle('off', !master.checked);
+    document.body.classList.toggle('off', !master.checked);
+    $('enabledState').textContent = master.checked ? 'on' : 'off';
+  };
+  master.checked = cfg.enabled !== false;
+  paintMaster();
+  master.addEventListener('change', () => {
+    paintMaster();
+    chrome.storage.sync.set({ enabled: master.checked });
+  });
 });
 
 /* The manager writes to the same keys. Pick its changes up rather than showing

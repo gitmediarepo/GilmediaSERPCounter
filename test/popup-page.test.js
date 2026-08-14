@@ -80,6 +80,34 @@ c.doc.getElementById('manage').dispatchEvent(new c.win.Event('click'));
 check('Manage opens the options page', c.opened(), 1);
 check('an empty list shows no count', c.doc.getElementById('count').textContent, '');
 
+// -------------------------------------------------------- master switch
+
+const on = boot({ domainsText: 'walmart.com' });
+check('the switch defaults to on', on.doc.getElementById('enabled').checked, true);
+check('and says so', on.doc.getElementById('enabledState').textContent, 'on');
+
+const sw = on.doc.getElementById('enabled');
+sw.checked = false;
+sw.dispatchEvent(new on.win.Event('change'));
+check('switching off is written to storage', on.saved.enabled, false);
+check('the label follows', on.doc.getElementById('enabledState').textContent, 'off');
+check('and the popup dims', on.doc.body.classList.contains('off'), true);
+
+sw.checked = true;
+sw.dispatchEvent(new on.win.Event('change'));
+check('switching back on is written too', on.saved.enabled, true);
+check('and the dimming lifts', on.doc.body.classList.contains('off'), false);
+
+const stored = boot({ domainsText: 'walmart.com', enabled: false });
+check('a stored off state is restored', stored.doc.getElementById('enabled').checked, false);
+check('and shown', stored.doc.getElementById('master').classList.contains('off'), true);
+
+check(
+  'mentions default to on',
+  boot({ domainsText: 'x.com' }).doc.getElementById('showMentions').checked,
+  true
+);
+
 // -------------------------------------------------------------- markup
 
 check(

@@ -25,6 +25,8 @@
 
   const DEFAULTS = {
     targets: [], // [{ domain: 'example.com', name: 'Example Co' }]
+    enabled: true, // master switch, off means touch nothing at all
+    showMentions: true, // name matches on other people's domains
     showOrganic: true,
     showAds: true,
     showLocal: true,
@@ -473,39 +475,64 @@
       .filter((t) => t.domain || t.name);
   }
 
+  const isLocalish = (kind) => kind === 'local' || kind === 'lsa' || kind === 'maps';
+
   /* Domains are the reliable signal for organic and ads. Business names are the
    * only signal in the local pack, LSA and Maps, where Google prints a name and
    * no URL. Matching a name inside an organic title is allowed but kept to
    * names of real length, because with a long domain list short names throw
-   * false positives all over the page. */
+   * false positives all over the page.
+   *
+   * Returns { target, via } where via is 'domain' or 'name'. The caller needs
+   * that distinction: searching a company name turns up LinkedIn, Indeed,
+   * ZoomInfo and a dozen other profiles carrying the name, and calling those
+   * your result is wrong. A domain match is you. A name match on somebody
+   * else's domain is a mention of you, which is a different fact. */
   function matchTarget(entry, targets, kind) {
-    const isLocalish = kind === 'local' || kind === 'lsa' || kind === 'maps';
+    const localish = isLocalish(kind);
     let blockText = null;
+    let nameHit = null;
 
     for (const t of targets) {
       if (t.domain) {
-        if (hostMatches(entry.host, t.domain)) return t;
+        if (hostMatches(entry.host, t.domain)) return { target: t, via: 'domain' };
         // Some results render the site in a <cite> while the href is wrapped.
-        if (entry.cite && hostMatches(cleanHost(entry.cite), t.domain)) return t;
-        if (entry.url && entry.url.toLowerCase().includes(t.domain)) return t;
+        if (entry.cite && hostMatches(cleanHost(entry.cite), t.domain))
+          return { target: t, via: 'domain' };
+        if (entry.url && entry.url.toLowerCase().includes(t.domain))
+          return { target: t, via: 'domain' };
       }
 
-      if (t.name && (isLocalish || t.name.length >= 5)) {
-        if (entry.title && entry.title.toLowerCase().includes(t.name)) return t;
-        if (isLocalish) {
+      if (!nameHit && t.name && (localish || t.name.length >= 5)) {
+        if (entry.title && entry.title.toLowerCase().includes(t.name)) {
+          nameHit = { target: t, via: 'name' };
+          continue;
+        }
+        if (localish) {
           if (blockText === null) blockText = textOf(entry.block).toLowerCase();
-          if (blockText.includes(t.name)) return t;
+          if (blockText.includes(t.name)) nameHit = { target: t, via: 'name' };
         }
       }
     }
-    return null;
+
+    /* A domain match anywhere in the list beats a name match, so the whole list
+     * is walked before falling back. Otherwise a result on your own site would
+     * be filed as a mention just because some other entry's name appeared in
+     * the title first. */
+    return nameHit;
   }
+
+  /* In the local pack, LSA and Maps a name match is the only signal there is,
+   * and it is your own listing, so it counts as the real thing. In organic and
+   * ads it means your name showed up on a page that is not yours. */
+  const isMention = (via, kind) => via === 'name' && !isLocalish(kind);
 
   // ---------------------------------------------------------------- painting
 
   function clearMarks() {
     for (const el of document.querySelectorAll(`.${NS}-badge`)) el.remove();
     for (const el of document.querySelectorAll(`.${NS}-hit`)) el.classList.remove(`${NS}-hit`);
+    for (const el of document.querySelectorAll(`.${NS}-mention`)) el.classList.remove(`${NS}-mention`);
     for (const el of document.querySelectorAll(`.${NS}-block`)) el.classList.remove(`${NS}-block`);
   }
 
@@ -517,17 +544,24 @@
       const rank = offset + i + 1;
       const tag = KIND_TAG[kind] || '';
       const label = tag ? `${tag} ${rank}` : String(rank);
-      const hit = matchTarget(entry, targets, kind);
+      const match = matchTarget(entry, targets, kind);
+      const hit = match && match.target;
+      const mention = match ? isMention(match.via, kind) : false;
+      // A mention is still a hit, just a different colour. Dropping it entirely
+      // when mentions are off would also drop it from the running log.
+      const show = hit && (!mention || cfg.showMentions);
 
       const badge = document.createElement('span');
       badge.className =
         `${NS}-badge ${NS}-badge--${kind}` +
-        (hit ? ` ${NS}-badge--hit` : '') +
+        (show ? (mention ? ` ${NS}-badge--mention` : ` ${NS}-badge--hit`) : '') +
         (rank > 99 ? ` ${NS}-badge--wide` : '');
       badge.textContent = String(rank);
-      badge.title = hit
-        ? `${hit.label} found at ${label}`
-        : `${tag ? tag + ' ' : 'Organic '}position ${rank}`;
+      badge.title = !show
+        ? `${tag ? tag + ' ' : 'Organic '}position ${rank}`
+        : mention
+          ? `${hit.label} mentioned on ${entry.host || 'this result'} at ${label}`
+          : `${hit.label} found at ${label}`;
 
       if (tag) {
         const t = document.createElement('span');
@@ -539,9 +573,19 @@
       entry.block.classList.add(`${NS}-block`);
       entry.block.insertBefore(badge, entry.block.firstChild);
 
+      if (show) {
+        entry.block.classList.add(mention ? `${NS}-mention` : `${NS}-hit`);
+      }
       if (hit) {
-        entry.block.classList.add(`${NS}-hit`);
-        hits.push({ target: hit, rank, label, title: entry.title, kind });
+        hits.push({
+          target: hit,
+          rank,
+          label,
+          title: entry.title,
+          kind,
+          mention,
+          host: entry.host || '',
+        });
       }
     });
     return hits;
@@ -577,58 +621,88 @@
       /* Read from the running log, not just this page, so paging 1 -> 2 -> 3
        * builds one cumulative answer for the search term. Falls back to the
        * current page on Maps, where there is no paging to accumulate. */
+      const groupNow = (list, keyOf) =>
+        [...new Set(list.map(keyOf))].map((key) => ({
+          key,
+          name: '',
+          hits: list.filter((h) => keyOf(h) === key),
+        }));
+
       const entries = run
         ? run.entries
-        : [...new Map(hits.map((h) => [h.target.label, h])).keys()].map((key) => ({
-            key,
-            name: '',
-            hits: hits.filter((h) => h.target.label === key),
-          }));
+        : groupNow(
+            hits.filter((h) => !h.mention),
+            (h) => h.target.label
+          );
 
-      if (!entries.length) {
+      const mentions = cfg.showMentions
+        ? run
+          ? run.mentions || []
+          : groupNow(
+              hits.filter((h) => h.mention),
+              (h) => h.host || 'elsewhere'
+            )
+        : [];
+
+      const pages = run && run.pages.length ? run.pages : [currentPage()];
+      const scope = pages.length > 1 ? `across pages ${pages.join(', ')}` : `on page ${pages[0]}`;
+
+      // Best position first, so whatever ranks highest is at the top.
+      const byBest = (list) =>
+        list
+          .slice()
+          .sort(
+            (a, b) => Math.min(...a.hits.map((h) => h.rank)) - Math.min(...b.hits.map((h) => h.rank))
+          );
+
+      function rowFor(e, kindClass) {
+        // Order one entry's own positions organic, local, LSA, then ads.
+        const order = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
+        const chips = e.hits
+          .slice()
+          .sort((a, b) => order[a.kind] - order[b.kind] || a.page - b.page || a.rank - b.rank)
+          .map((h) => {
+            /* An organic rank is absolute, so it already says which page it
+             * came from. Ad, LSA and map positions restart every page, so
+             * those need the page spelled out. */
+            const needsPage = h.kind !== 'organic' && pages.length > 1 && h.page;
+            /* Escaped even though we wrote these labels ourselves. The running
+             * log lives in sessionStorage, which a content script shares with
+             * the page's own origin, so anything on the page could in theory
+             * rewrite it. Never interpolate stored data raw into innerHTML. */
+            const text = needsPage ? `${esc(h.label)} &middot;p${esc(h.page)}` : esc(h.label);
+            const cls = kindClass ? ` ${NS}-pos--${kindClass}` : ` ${NS}-pos--${esc(h.kind)}`;
+            return `<span class="${NS}-pos${cls}" title="page ${esc(h.page || '?')}">${text}</span>`;
+          })
+          .join('');
+        const sub = e.name ? `<span class="${NS}-sub">${esc(e.name)}</span>` : '';
+        return `<div class="${NS}-row"><span class="${NS}-dom">${esc(e.key)}</span>${sub}${chips}</div>`;
+      }
+
+      if (!entries.length && !mentions.length) {
         lines.push(
           `<div class="${NS}-row"><span class="${NS}-miss" data-act="why" title="Click to list every domain found on this page">none of your ${loaded} domain${loaded === 1 ? '' : 's'} found yet &middot; why?</span></div>`
         );
       } else {
-        // Best position first, so the domain ranking highest is at the top.
-        const rows = entries
-          .slice()
-          .sort((a, b) => Math.min(...a.hits.map((h) => h.rank)) - Math.min(...b.hits.map((h) => h.rank)));
-
-        const pages = run && run.pages.length ? run.pages : [currentPage()];
-        const scope =
-          pages.length > 1
-            ? `across pages ${pages.join(', ')}`
-            : `on page ${pages[0]}`;
-        lines.push(
-          `<div class="${NS}-found">${rows.length} of ${loaded} domain${loaded === 1 ? '' : 's'} ${scope}</div>`
-        );
-
-        for (const e of rows) {
-          // Order one entry's own positions organic, local, LSA, then ads.
-          const order = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
-          const chips = e.hits
-            .slice()
-            .sort((a, b) => (order[a.kind] - order[b.kind]) || a.page - b.page || a.rank - b.rank)
-            .map((h) => {
-              /* An organic rank is absolute, so it already says which page it
-               * came from. Ad, LSA and map positions restart every page, so
-               * those need the page spelled out. */
-              const needsPage = h.kind !== 'organic' && pages.length > 1 && h.page;
-              /* Escaped even though we wrote these labels ourselves. The running
-               * log lives in sessionStorage, which a content script shares with
-               * the page's own origin, so anything on the page could in theory
-               * rewrite it. Never interpolate stored data raw into innerHTML. */
-              const text = needsPage
-                ? `${esc(h.label)} &middot;p${esc(h.page)}`
-                : esc(h.label);
-              return `<span class="${NS}-pos ${NS}-pos--${esc(h.kind)}" title="page ${esc(h.page || '?')}">${text}</span>`;
-            })
-            .join('');
-          const sub = e.name ? `<span class="${NS}-sub">${esc(e.name)}</span>` : '';
+        if (entries.length) {
           lines.push(
-            `<div class="${NS}-row"><span class="${NS}-dom">${esc(e.key)}</span>${sub}${chips}</div>`
+            `<div class="${NS}-found">${entries.length} of ${loaded} domain${loaded === 1 ? '' : 's'} ${scope}</div>`
           );
+          for (const e of byBest(entries)) lines.push(rowFor(e));
+        } else {
+          lines.push(
+            `<div class="${NS}-found">no domain of yours ${scope}</div>`
+          );
+        }
+
+        /* Mentions get their own block. Searching a company name pulls up
+         * LinkedIn, Indeed, ZoomInfo and the rest, all carrying the name and
+         * none of them yours. Worth seeing, wrong to count as a ranking. */
+        if (mentions.length) {
+          lines.push(
+            `<div class="${NS}-found ${NS}-found--mention">${mentions.length} mention${mentions.length === 1 ? '' : 's'} on other sites</div>`
+          );
+          for (const e of byBest(mentions)) lines.push(rowFor(e, 'mention'));
         }
       }
     }
@@ -719,6 +793,17 @@
 
   function scan() {
     clearMarks();
+
+    /* Master switch. Off means the page is left exactly as Google served it:
+     * no badges, no outlines, no panel, and nothing written to the running log.
+     * One click in the popup, for when someone is looking over your shoulder. */
+    if (!cfg.enabled) {
+      const panel = document.getElementById(`${NS}-panel`);
+      if (panel) panel.remove();
+      document.dispatchEvent(new CustomEvent(`${NS}:painted`));
+      return;
+    }
+
     const hits = [];
     const sections = [];
     const hostsSeen = new Set();
@@ -790,12 +875,18 @@
         run.pages.push(page);
         run.pages.sort((a, b) => a - b);
       }
+      if (!Array.isArray(run.mentions)) run.mentions = [];
+
       for (const h of hits) {
-        const key = h.target.label;
-        let entry = run.entries.find((e) => e.key === key);
+        /* Mentions are keyed by the site doing the mentioning, not by the target.
+         * "linkedin.com mentions you at 7" is the useful fact; "you at 7" would
+         * be a lie about whose page it is. */
+        const list = h.mention ? run.mentions : run.entries;
+        const key = h.mention ? h.host || 'elsewhere' : h.target.label;
+        let entry = list.find((e) => e.key === key);
         if (!entry) {
           entry = { key, name: (h.target.ref && h.target.ref.name) || '', hits: [] };
-          run.entries.push(entry);
+          list.push(entry);
         }
         const id = `${h.kind}|${h.rank}|${page}`;
         if (!entry.hits.some((x) => x.id === id)) {

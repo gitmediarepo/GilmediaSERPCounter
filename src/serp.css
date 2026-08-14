@@ -112,6 +112,25 @@
   border-radius: 8px;
 }
 
+/* Amber, not green. A name match on somebody else's domain is a mention of you,
+   not a ranking of yours, and the two must never look the same at a glance.
+   Dashed outline reinforces it for anyone who does not separate the hues. */
+.gil-serp-badge--mention {
+  background: linear-gradient(160deg, #e8a24f 0%, #d4832b 55%, #ab631c 100%);
+  box-shadow:
+    0 0 0 3px rgba(212, 131, 43, 0.24),
+    0 1px 2px rgba(44, 28, 8, 0.24),
+    0 4px 12px rgba(44, 28, 8, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.gil-serp-mention {
+  background: rgba(212, 131, 43, 0.09);
+  outline: 2px dashed #d4832b;
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
 /* Narrow windows have no gutter to hang the badge in, so drop it inline. */
 @media (max-width: 1180px) {
   .gil-serp-badge {
@@ -216,6 +235,15 @@
   letter-spacing: 0.2px;
 }
 
+/* The mentions header doubles as the divider between the two blocks, so it
+   needs air above it that the first header does not. */
+.gil-serp-found--mention {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #2c2c2c;
+  color: #e8a24f;
+}
+
 .gil-serp-row {
   display: flex;
   flex-wrap: wrap;
@@ -252,6 +280,10 @@
   color: #fff;
   font-size: 11px;
   font-weight: 700;
+}
+
+.gil-serp-pos--mention {
+  background: #d4832b;
 }
 
 /* Chip colour matches the badge colour of the surface it came from. */

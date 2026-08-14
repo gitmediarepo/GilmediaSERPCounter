@@ -53,6 +53,35 @@ The separator can be a pipe, a comma or a tab, so a paste straight out of a spre
 - The **name** alone matches the local pack, Local Services Ads and Maps, where Google prints a business name instead of a URL.
 - **Both** covers every surface, which is what you want most of the time.
 
+### Your result versus a mention of you
+
+Search your own company name and the first page fills with LinkedIn, Indeed, ZoomInfo, Crunchbase and a dozen directories, all carrying your name and none of them your site. Calling those your ranking is wrong, so they are separated:
+
+- **Green** means the **domain** matched. That result is yours.
+- **Amber** means only the **business name** matched, on somebody else's domain. That is a mention of you, not a position of yours. Dashed outline as well as a different hue, so it reads without relying on colour.
+
+Mentions get their own block in the panel, keyed by the site doing the mentioning rather than by you:
+
+```
+1 of 1 domain on page 1
+
+gilmedia.com
+Gilmedia             [3]
+
+2 mentions on other sites
+
+linkedin.com         [7]
+zoominfo.com         [11]
+```
+
+In the local pack, Local Services Ads and Maps a name match is the only signal Google gives and it is your own listing, so it stays green. The split only applies where a URL exists to check.
+
+Untick **Mentions on other sites** in the popup to drop them entirely.
+
+### The switch
+
+The popup opens with a switch at the top. Off means the content script leaves Google's page exactly as it was served: no badges, no outlines, no panel, nothing written to the running log. One click, for screen shares and anyone sitting next to you.
+
 ### What the panel shows
 
 Every domain that appears gets its own row, listing **all** of its positions across every surface at once:
@@ -188,6 +217,7 @@ node test/numbering.test.js  # numbering and detection (needs jsdom)
 node test/modules.test.js    # LSA vs Businesses vs organic separation
 node test/domains.test.js    # domain list parsing and panel behaviour
 node test/running-log.test.js # cumulative log across pages, reset on new term
+node test/mentions.test.js   # domain hits vs name mentions, master switch
 node test/manager.test.js    # line model, comment preservation, duplicates
 node test/options-page.test.js # the manager page driven end to end
 node test/popup-page.test.js # the popup driven end to end
@@ -209,6 +239,7 @@ test/numbering.test.js  jsdom assertions on numbering and detection
 test/modules.test.js    locks LSA, Businesses and organic apart
 test/domains.test.js    jsdom assertions on list parsing and the panel
 test/running-log.test.js accumulation across pages, reset on a new query
+test/mentions.test.js   green domain hits vs amber name mentions, master switch
 test/manager.test.js    line model, comment preservation, duplicate detection
 test/options-page.test.js drives the real manager page against stub storage
 test/popup-page.test.js drives the real popup against stub storage
