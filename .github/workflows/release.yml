@@ -59,6 +59,9 @@ jobs:
             --generate-notes \
             dist/gilmedia-serp-counter-"$GITHUB_REF_NAME".zip
 
+      # All four, not just the item id. The id lands as soon as the item exists,
+      # but the OAuth trio arrives later, and a half-configured job would fail
+      # the whole release instead of skipping.
       - name: Submit to Chrome Web Store
-        if: env.CWS_ITEM_ID != ''
+        if: env.CWS_ITEM_ID != '' && env.CWS_CLIENT_ID != '' && env.CWS_CLIENT_SECRET != '' && env.CWS_REFRESH_TOKEN != ''
         run: node build/publish-store.js

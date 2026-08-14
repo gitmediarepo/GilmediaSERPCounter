@@ -35,6 +35,16 @@ git push origin main --tags
 The workflow refuses to run if the tag and the manifest version disagree, which
 is the mistake that actually happens.
 
+## The item
+
+Item id `npcppehliipnbkhejhioiigakkbjfbfg`, first submitted 13 August 2026 at
+version 1.7.0. Console:
+`https://chrome.google.com/webstore/devconsole/`
+
+Do not push a new tag while a submission is still pending review. Uploading a
+new package replaces the one in the queue, which sends you to the back of it.
+Wait for the verdict email first.
+
 ## First submission is manual
 
 The API can only update an item that already exists. The first one has to go
@@ -85,7 +95,7 @@ store step and still publishes the GitHub release.
    | `CWS_CLIENT_ID` | from step 2 |
    | `CWS_CLIENT_SECRET` | from step 2 |
    | `CWS_REFRESH_TOKEN` | from step 3 |
-   | `CWS_ITEM_ID` | the 32 characters in the item's console URL |
+   | `CWS_ITEM_ID` | `npcppehliipnbkhejhioiigakkbjfbfg` |
 
 To publish from your own machine instead, set the same four as environment
 variables and run `node build/publish-store.js`. Add `--draft` to upload without
