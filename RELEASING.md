@@ -41,9 +41,18 @@ Item id `npcppehliipnbkhejhioiigakkbjfbfg`, first submitted 13 August 2026 at
 version 1.7.0. Console:
 `https://chrome.google.com/webstore/devconsole/`
 
-Do not push a new tag while a submission is still pending review. Uploading a
-new package replaces the one in the queue, which sends you to the back of it.
-Wait for the verdict email first.
+Do not push a new tag while a submission is still pending review. The store API
+refuses the upload outright:
+
+```
+ITEM_NOT_UPDATABLE - The item cannot be updated now because it is in pending
+review, ready to publish, or deleted status.
+```
+
+Confirmed on 14 August 2026 trying to send 1.9.0 while 1.8.0 was queued. Git is
+unaffected, so tag and push as normal; the GitHub release builds fine and only
+the store step fails. Once the verdict lands, run the publish script again and
+whatever is tagged ships.
 
 ## First submission is manual
 
