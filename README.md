@@ -6,9 +6,9 @@
 
 Page 3 looks like 1-10 when it is really 21-30. This extension numbers every result by its true rank, and marks your clients in green wherever they appear: organic, Ads, the local pack, Local Services Ads and Maps.
 
-### [→ Install guide](https://gitmediarepo.github.io/GilmediaSERPCounter/)
+### [→ Add to Chrome](https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg)
 
-[Download](https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest) · [Install](#install) · [Setup](#setup) · [How it works](#how-it-works) · [Limits](#known-limits)
+[Install guide](https://gitmediarepo.github.io/GilmediaSERPCounter/) · [Install](#install) · [Setup](#setup) · [How it works](#how-it-works) · [Limits](#known-limits)
 
 </div>
 
@@ -122,18 +122,24 @@ That drops straight into an email, a report or a ticket.
 
 ## Install
 
-Not on the Chrome Web Store. Load it directly, which takes about 30 seconds.
+**[Add to Chrome](https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg)** from the Chrome Web Store, then pin the orange G icon to your toolbar. Chrome handles updates from there.
 
 There is a [walkthrough with screenshots](https://gitmediarepo.github.io/GilmediaSERPCounter/) if you prefer it visual.
 
-1. **Download** the latest [release zip](https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest) (or clone this repo) and unzip it.
+Brave and Arc install from that same listing. Edge asks you to allow extensions from other stores first.
+
+If Chrome warns that the extension is **not trusted by Enhanced Safe Browsing**, that refers to how long this publisher has been on the store, not to the code. It went live in August 2026. Click *Continue to install*. The extension requests one permission, `storage`, and no host permissions, runs only on Google search and Maps pages, and makes no network requests at all.
+
+### Running it from source instead
+
+1. Download the latest [release zip](https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest) (or clone this repo) and unzip it.
 2. Put the folder somewhere permanent on a **local** drive. Chrome re-reads extension files constantly, so a network drive or a synced cloud folder will make it crawl.
 3. Open `chrome://extensions` in Chrome.
 4. Turn on **Developer mode** with the toggle in the top right.
 5. Click **Load unpacked** and select the unzipped folder, the one containing `manifest.json`.
 6. Pin the orange G icon to your toolbar.
 
-To update later, replace the folder contents and click the refresh arrow on the extension's card.
+Loaded this way, updates are manual: replace the folder contents and click the refresh arrow on the extension's card.
 
 Works in any Chromium browser: Chrome, Edge, Brave, Opera, Arc.
 

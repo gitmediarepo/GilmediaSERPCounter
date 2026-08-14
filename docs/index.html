@@ -858,6 +858,10 @@
           <a href="#setup">Setup</a>
           <a href="#faq">FAQ</a>
           <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">GitHub</a>
+          <a
+            href="https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg"
+            >Web Store</a
+          >
         </nav>
       </div>
     </header>
@@ -877,13 +881,14 @@
             <div class="cta-row">
               <a
                 class="btn btn-primary"
-                href="https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest"
-                >Download for Chrome</a
+                href="https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg"
+                >Add to Chrome</a
               >
               <a class="btn btn-ghost" href="#install">How to install</a>
             </div>
             <p class="hero-note">
-              Free and open source. No account, no tracking, no data leaves your browser.
+              On the Chrome Web Store. Free and open source, no account, no tracking, no data leaves
+              your browser.
             </p>
           </div>
 
@@ -1143,69 +1148,29 @@ timhortons.com | Tim Hortons</span>
         <div class="wrap">
           <div class="sec-head reveal">
             <span class="eyebrow">Install</span>
-            <h2>About thirty seconds, no store required</h2>
+            <h2>Two clicks from the Chrome Web Store</h2>
             <p class="lede">
-              This is not on the Chrome Web Store, so you load it directly. Chrome calls this an
-              unpacked extension. It is the same method extension developers use every day and it is
-              completely standard.
+              It is a normal store install. Nothing to download, nothing to unzip, no developer mode.
+              Chrome keeps it up to date on its own from here on.
             </p>
           </div>
 
           <ol class="steps">
             <li class="step reveal">
-              <h3>Download and unzip</h3>
+              <h3>Add it to Chrome</h3>
               <p>
-                Grab the
-                <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest"
-                  >latest release zip</a
+                Open the
+                <a
+                  href="https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg"
+                  >Chrome Web Store listing</a
                 >
-                and unzip it. You get a folder called <code>GilmediaSERPCounter</code>. Put it
-                somewhere permanent on a local drive, not a network share or a synced cloud folder,
-                since Chrome reads these files constantly.
-              </p>
-            </li>
-
-            <li class="step reveal">
-              <h3>Open the extensions page</h3>
-              <p>
-                Type <code>chrome://extensions</code> into the address bar and press Enter. It will
-                not work from a link, so you do have to type it.
-              </p>
-              <div class="shot">
-                <div class="shot-bar">
-                  <span class="dots"><i></i><i></i><i></i></span>
-                  <span class="addr">chrome://extensions</span>
-                </div>
-              </div>
-            </li>
-
-            <li class="step reveal">
-              <h3>Turn on Developer mode</h3>
-              <p>
-                The toggle sits in the top right corner of that page. Without it, the Load unpacked
-                button stays hidden.
+                and click <strong>Add to Chrome</strong>, then <strong>Add extension</strong> when
+                Chrome asks. The only permission it wants is storage, for saving your tracked
+                domains.
               </p>
               <div class="shot">
                 <div class="shot-body">
-                  <span class="grow">Developer mode</span>
-                  <span class="toggle" role="img" aria-label="toggle switched on"></span>
-                </div>
-              </div>
-            </li>
-
-            <li class="step reveal">
-              <h3>Load unpacked</h3>
-              <p>
-                Three buttons appear in the top left. Click <strong>Load unpacked</strong> and select
-                the <code>GilmediaSERPCounter</code> folder, the one with
-                <code>manifest.json</code> sitting directly inside it. Select the folder itself, not
-                a file within it.
-              </p>
-              <div class="shot">
-                <div class="shot-body">
-                  <span class="fake-btn hi">Load unpacked</span>
-                  <span class="fake-btn">Pack extension</span>
-                  <span class="fake-btn">Update</span>
+                  <span class="fake-btn hi">Add to Chrome</span>
                 </div>
               </div>
             </li>
@@ -1229,10 +1194,32 @@ timhortons.com | Tim Hortons</span>
           </ol>
 
           <p class="callout reveal">
-            <strong>Updating later:</strong> replace the folder contents with the new version, then
-            click the circular refresh arrow on the extension's card in
-            <code>chrome://extensions</code>. Your tracked domains survive the update.
+            <strong>Seeing a caution screen?</strong> Chrome shows "not trusted by Enhanced Safe
+            Browsing" on extensions from publishers that are new to the store, and this one went live
+            in August 2026. It is a note about the publisher's age, not about the code. Click
+            <strong>Continue to install</strong>. Every line of what you are installing is
+            <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">public on GitHub</a>, and
+            the extension asks for no host permissions and sends nothing anywhere.
           </p>
+
+          <details class="callout reveal">
+            <summary><strong>Rather run it from source?</strong></summary>
+            <p>
+              Download the
+              <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/releases/latest"
+                >latest release zip</a
+              >
+              and unzip it somewhere permanent on a local drive, not a synced cloud folder. Type
+              <code>chrome://extensions</code> into the address bar, turn on
+              <strong>Developer mode</strong> in the top right, click
+              <strong>Load unpacked</strong> and select the <code>GilmediaSERPCounter</code> folder,
+              the one with <code>manifest.json</code> directly inside it.
+            </p>
+            <p>
+              Loaded this way, updates are manual: replace the folder contents and click the refresh
+              arrow on the extension's card. Your tracked domains survive either way.
+            </p>
+          </details>
         </div>
       </section>
 
@@ -1337,11 +1324,18 @@ timhortons.com | Tim Hortons</span>
             </details>
 
             <details>
-              <summary>Why is it not on the Chrome Web Store?</summary>
+              <summary>Chrome says it is not trusted by Enhanced Safe Browsing. Is that bad?</summary>
               <p>
-                Store review adds days to every change, and this tool tracks a moving target. Google
-                reshuffles its results markup regularly, and loading unpacked means a fix ships the
-                same hour it is written.
+                No. That message is about how long the publisher has been on the store, not about
+                what the code does. Google's own wording is that new developers generally take a few
+                months to become trusted, and roughly a quarter of all store extensions carry the
+                same notice at any given time. This one went live in August 2026.
+              </p>
+              <p>
+                What you can check instead of taking anyone's word: it requests one permission,
+                <code>storage</code>, and no host permissions at all. It runs only on Google search
+                and Maps pages. There is no backend and no network request. The whole source is
+                <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">on GitHub</a>.
               </p>
             </details>
 
@@ -1375,9 +1369,12 @@ timhortons.com | Tim Hortons</span>
             <details>
               <summary>Does it work in Edge, Brave or Arc?</summary>
               <p>
-                Yes. Any Chromium browser loads unpacked extensions the same way. The extensions page
-                lives at <code>edge://extensions</code> in Edge and
-                <code>brave://extensions</code> in Brave.
+                Yes. Brave and Arc install straight from the Chrome Web Store listing. Edge asks you
+                to allow extensions from other stores first, then installs it the same way.
+              </p>
+              <p>
+                Loading it unpacked works in all of them too. The extensions page lives at
+                <code>edge://extensions</code> in Edge and <code>brave://extensions</code> in Brave.
               </p>
             </details>
 
@@ -1434,6 +1431,10 @@ timhortons.com | Tim Hortons</span>
     <footer>
       <div class="wrap">
         <span>Built by <a href="https://www.gilmedia.com">Gilmedia</a></span>
+        <a
+          href="https://chromewebstore.google.com/detail/gilmedia-serp-counter/npcppehliipnbkhejhioiigakkbjfbfg"
+          >Chrome Web Store</a
+        >
         <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">Source on GitHub</a>
         <a href="./support.html">Support</a>
         <a href="./privacy.html">Privacy</a>
