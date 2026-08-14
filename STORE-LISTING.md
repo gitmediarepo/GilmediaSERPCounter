@@ -84,13 +84,23 @@ Built by Gilmedia. https://www.gilmedia.com/
 
 **Homepage URL**
 ```
-https://gitmediarepo.github.io/GilmediaSERPCounter/
+https://www.gilmedia.com/
 ```
 
 **Support URL**
 ```
-https://github.com/gitmediarepo/GilmediaSERPCounter/issues
+https://gitmediarepo.github.io/GilmediaSERPCounter/support.html
 ```
+
+The homepage field is the developer's own site, so gilmedia.com belongs there and
+gets the prominent link. The support field is different: it has to land on a page
+where someone can actually get help with this extension. A general agency homepage
+does not qualify, and reviewers do check. `support.html` is branded Gilmedia,
+carries the contact form and phone numbers, and links back to gilmedia.com, so
+the main site gets a second route in without putting the wrong URL in the field.
+
+The install guide at `https://gitmediarepo.github.io/GilmediaSERPCounter/` stays
+linked from the description, the support page, and the GitHub repo.
 
 ---
 

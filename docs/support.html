@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Support - Gilmedia SERP Counter</title>
+    <meta
+      name="description"
+      content="Help with the Gilmedia SERP Counter Chrome extension. Common fixes, and how to reach a human at Gilmedia."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f37333'/%3E%3Ctext x='16' y='23' font-family='Arial,sans-serif' font-size='21' font-weight='700' text-anchor='middle' fill='%23161616'%3EG%3C/text%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        --ink: #161616;
+        --orange: #b8480f;
+        --green: #4c6337;
+        --bg: #fff;
+        --bg-sunk: #f6f4f1;
+        --text: #1c1b19;
+        --text-soft: #5d5a55;
+        --line: #e4e0da;
+        --font: 'Mulish', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #131211;
+          --bg-sunk: #1a1918;
+          --text: #f0ede8;
+          --text-soft: #b3aea6;
+          --line: #2c2a27;
+          --orange: #f37333;
+          --green: #a9c489;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 1.0625rem;
+        line-height: 1.65;
+      }
+      .topbar {
+        background: var(--ink);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .wrap {
+        max-width: 720px;
+        margin-inline: auto;
+        padding-inline: 24px;
+      }
+      .topbar .wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 58px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 0.9rem;
+      }
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: #f37333;
+        color: var(--ink);
+        font-weight: 800;
+        font-size: 15px;
+      }
+      main {
+        padding-block: 64px 96px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(1.9rem, 1.4rem + 2vw, 2.6rem);
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+      }
+      h2 {
+        margin: 48px 0 14px;
+        font-size: 1.3rem;
+        letter-spacing: -0.01em;
+      }
+      h3 {
+        margin: 28px 0 6px;
+        font-size: 1.05rem;
+      }
+      p {
+        margin: 0 0 16px;
+      }
+      ul {
+        margin: 0 0 16px;
+        padding-left: 22px;
+      }
+      li {
+        margin-bottom: 8px;
+      }
+      .lede {
+        font-size: 1.15rem;
+        color: var(--text-soft);
+        border-left: 3px solid var(--orange);
+        padding: 4px 0 4px 20px;
+        margin: 0 0 40px;
+      }
+      code {
+        font-family: var(--mono);
+        font-size: 0.9em;
+        background: var(--bg-sunk);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 0.1em 0.4em;
+      }
+      a {
+        color: var(--orange);
+        font-weight: 600;
+      }
+      .cards {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        margin: 0 0 16px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 20px;
+        background: var(--bg-sunk);
+      }
+      .card h3 {
+        margin: 0 0 6px;
+        font-size: 1rem;
+      }
+      .card p {
+        margin: 0;
+        font-size: 0.94rem;
+        color: var(--text-soft);
+      }
+      .card a {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 0.94rem;
+      }
+      .tel {
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding-block: 32px;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="wrap">
+        <a class="brand" href="./"><span class="mark">G</span> SERP Counter</a>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <h1>Support</h1>
+      <p class="lede">
+        Most problems turn out to be one of the four below. If none of them fit, there is a real
+        person at the bottom of this page.
+      </p>
+
+      <h2>Common fixes</h2>
+
+      <h3>No numbers are showing up at all</h3>
+      <p>
+        Reload the page. The extension reads the results when the page loads, so if you installed it
+        while a search was already open, that tab has not seen it yet. If a reload does not do it,
+        open the extension's popup and check that the result types you care about are still ticked.
+        They can be switched off individually.
+      </p>
+
+      <h3>My domain is not turning green</h3>
+      <p>
+        Paste the domain in however you like. <code>https://www.example.com/pricing</code> and
+        <code>example.com</code> both work, and subdomains like <code>shop.example.com</code> match
+        <code>example.com</code> too. What will not match is a typo or a different registered
+        domain, so <code>example.net</code> stays grey when you searched for the <code>.com</code>.
+      </p>
+
+      <h3>A business shows up in the map results but stays grey</h3>
+      <p>
+        Map listings and Local Services Ads show a business name, not a web address, so there is no
+        domain there to match against. Add the business name in the second column and it will start
+        matching:
+      </p>
+      <p>
+        <code>example.com | Example Company</code>
+      </p>
+      <p>
+        The name is optional, but without it the local results have nothing to go on. Give both and
+        you are covered everywhere.
+      </p>
+
+      <h3>The numbers went back to 1 on page two</h3>
+      <p>
+        That happens when the page was reached in a way that dropped Google's own offset from the
+        address bar. Click through using the numbered pagination at the bottom of the results and it
+        picks the count back up. The positions come from that offset, not from a count the extension
+        keeps by itself, which is exactly why they stay honest.
+      </p>
+
+      <h2>Installing it</h2>
+      <p>
+        The full walkthrough, with pictures, is on the
+        <a href="./">install guide</a>. It covers both routes: the Chrome Web Store, and loading it
+        unpacked from the source if you would rather run your own copy.
+      </p>
+
+      <h2>Reporting a bug</h2>
+      <p>
+        Bug reports are genuinely welcome, particularly about detection. Google changes the shape of
+        its results pages regularly and something that worked in March can quietly stop working in
+        August. The useful details are: the search term, which country you searched from, which page
+        number, and what you expected to see instead.
+      </p>
+      <p>
+        If you have a GitHub account, raise it on the
+        <a href="https://github.com/gitmediarepo/GilmediaSERPCounter/issues">issue tracker</a>, where
+        you can also see what has already been reported. If you would rather not, use the contact
+        details below and it will get logged for you.
+      </p>
+
+      <h2>Talking to a human</h2>
+      <p>
+        The extension is built and maintained by
+        <a href="https://www.gilmedia.com/">Gilmedia</a>, a digital marketing agency with offices in
+        Toronto and Florida. We answer during business hours, 9am to 6pm Monday to Friday, Eastern
+        time.
+      </p>
+
+      <div class="cards">
+        <div class="card">
+          <h3>Contact form</h3>
+          <p>The surest way to reach us, and it does not need an account anywhere.</p>
+          <a href="https://www.gilmedia.com/contact/">gilmedia.com/contact</a>
+        </div>
+        <div class="card">
+          <h3>Phone</h3>
+          <p>
+            Toronto <span class="tel">(647) 478-5858</span><br />
+            Toll free <span class="tel">1 (866) 627-4873</span>
+          </p>
+          <a href="https://www.gilmedia.com/">More about Gilmedia</a>
+        </div>
+      </div>
+
+      <h2>Privacy</h2>
+      <p>
+        Short version: the extension collects nothing and sends nothing, because there is no server
+        on the other end to send it to. The
+        <a href="./privacy.html">full policy</a> spells out what is stored in your own browser and
+        why.
+      </p>
+    </main>
+
+    <footer class="wrap">
+      Not affiliated with, endorsed by, or sponsored by Google.<br />
+      Gilmedia SERP Counter is open source under the MIT licence.
+      <a href="https://github.com/gitmediarepo/GilmediaSERPCounter">View the source</a>.
+    </footer>
+  </body>
+</html>
