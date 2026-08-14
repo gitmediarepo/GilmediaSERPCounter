@@ -57,10 +57,39 @@ graphics and the privacy answers live. Every field is written out in
 Listing text and screenshots are never touched by the API. Change those by hand
 in the console.
 
-## Wiring up automatic store submission
+## Publishing from this machine
 
-Four repo secrets, minted once. Until they exist the workflow simply skips the
-store step and still publishes the GitHub release.
+Already wired. Credentials were minted on 14 August 2026 and live outside the
+repo at `Z:\Claude\projects\gilmedia\SERP-Counter\store\cws-oauth.json`.
+
+```
+node Z:\Claude\projects\gilmedia\SERP-Counter\scripts\publish-to-store.js
+node Z:\Claude\projects\gilmedia\SERP-Counter\scripts\publish-to-store.js --draft
+```
+
+It rebuilds the store zip from the current manifest version, then uploads and
+submits. `--draft` uploads without submitting.
+
+If the refresh token ever dies (password change, revoked access), remint it:
+
+```
+node Z:\Claude\projects\gilmedia\SERP-Counter\scripts\mint-cws-token.js
+```
+
+It reuses the existing Gilmedia OAuth client rather than making a new one:
+client `296984968971-fhi1duif...` on GCP project `claudecode-491119`, which
+already has `http://localhost:8765/callback` as a registered redirect and has
+the Chrome Web Store API enabled. Do not create a second client.
+
+## Wiring up automatic store submission from CI
+
+Four repo secrets. Until they exist the workflow simply skips the store step and
+still publishes the GitHub release. The values are all in `cws-oauth.json`
+already, so this is a copy-paste job, not a minting job. Neither Gilmedia PAT
+carries the Actions Secrets permission, so they go in by hand at
+[the repo secrets page](https://github.com/gitmediarepo/GilmediaSERPCounter/settings/secrets/actions).
+
+The from-scratch route, only needed if the shared client is ever lost:
 
 1. Create a Google Cloud project and enable the **Chrome Web Store API**.
 2. Create an **OAuth client ID** of type **Desktop app**. Note the client id and
