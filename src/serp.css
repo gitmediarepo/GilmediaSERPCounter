@@ -323,3 +323,58 @@
     transition: none;
   }
 }
+
+/* ------------------------------------------------- top pagination bar
+ * Our own bar, generated from the URL scheme, not cloned from Google's
+ * markup. Styled to sit quietly inside the results column in both light
+ * and dark Google themes. */
+.gil-serp-pagetop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 2px 0 18px;
+  font-family: arial, sans-serif;
+}
+
+.gil-serp-pagetop-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 9px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  border-radius: 15px;
+  color: #1a73e8;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1;
+  background: transparent;
+}
+
+a.gil-serp-pagetop-link:hover {
+  background: rgba(128, 128, 128, 0.12);
+  text-decoration: none;
+}
+
+.gil-serp-pagetop-nav {
+  font-weight: 700;
+}
+
+.gil-serp-pagetop-current {
+  background: #f37333;
+  border-color: #f37333;
+  color: #fff;
+  font-weight: 700;
+  cursor: default;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gil-serp-pagetop-link {
+    color: #8ab4f8;
+  }
+  .gil-serp-pagetop-current {
+    color: #fff;
+  }
+}

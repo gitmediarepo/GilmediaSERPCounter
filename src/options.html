@@ -90,6 +90,55 @@
         gap: 8px;
         padding: 0 0 14px;
       }
+      /* Remote sync bar. Lives inside the sticky header, below the toolbar.
+         Both blocks keep .wrap's auto margins, so never set margin here - that
+         is what un-centers them. */
+      .remote {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-top: 12px;
+        padding-bottom: 6px;
+        border-top: 1px solid var(--line-soft);
+      }
+      .remote .lbl {
+        flex: none;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--soft);
+        white-space: nowrap;
+      }
+      .remote input[type='text'] {
+        flex: 1;
+        min-width: 200px;
+        font-family: ui-monospace, Consolas, monospace;
+        font-size: 12px;
+      }
+      .remote-auto {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--soft);
+        cursor: pointer;
+        white-space: nowrap;
+        user-select: none;
+      }
+      .remote-auto input {
+        accent-color: var(--orange);
+        width: 14px;
+        height: 14px;
+      }
+      .remote-hint {
+        padding-bottom: 14px;
+        font-size: 11.5px;
+        color: var(--faint);
+      }
+      .remote-hint b {
+        color: var(--soft);
+      }
       input[type='text'],
       input[type='search'],
       select,
@@ -148,6 +197,20 @@
       button.on {
         border-color: var(--orange);
         color: var(--orange);
+      }
+      .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        font-size: 14px;
+      }
+      .icon-btn svg {
+        width: 15px;
+        height: 15px;
+        display: block;
       }
 
       main {
@@ -300,13 +363,62 @@
         <button id="dupeOnly" title="Show only rows whose domain appears more than once">
           Duplicates
         </button>
-        <button class="primary" id="add">Add domain</button>
-        <button id="import" title="Merge a .txt or .csv list into this one">Import</button>
-        <button id="export" title="Download the list as a .txt file">Export</button>
+        <button class="primary icon-btn" id="add" title="Add a new domain">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <button class="icon-btn" id="import" title="Merge a .txt or .csv list into this one">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+        <button class="icon-btn" id="export" title="Download the list as a .txt file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 14 12 9 17 14"></polyline>
+            <line x1="12" y1="9" x2="12" y2="21"></line>
+          </svg>
+        </button>
         <button id="bulkToggle" title="Edit the whole list as text">Bulk edit</button>
-        <button id="clear" class="danger">Clear all</button>
+        <a href="help.html" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 1px solid #3a3a3a; background: #232323; color: #ddd; border-radius: 4px; cursor: pointer; font-size: 14px; text-decoration: none; transition: background 160ms;" title="Help and documentation">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+        </a>
+        <button class="icon-btn danger" id="clear" title="Delete all domains">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+        </button>
         <input type="file" id="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden />
       </div>
+
+      <div class="wrap remote">
+        <span class="lbl">Remote list</span>
+        <input
+          type="text"
+          id="remoteUrl"
+          placeholder="https://your-site.com/list.txt - one shared file, every computer stays in sync"
+          spellcheck="false"
+          autocomplete="off"
+        />
+        <button class="primary" id="remoteSync" title="Fetch the file now and replace the list with it">
+          Sync now
+        </button>
+        <label class="remote-auto" title="Re-fetch the file when the extension opens, if the last fetch is older than 12 hours">
+          <input type="checkbox" id="remoteAuto" /> Auto-refresh
+        </label>
+        <span class="status" id="remoteStatus"></span>
+      </div>
+      <p class="wrap remote-hint">
+        Point every computer at one shared <b>.txt</b> file (same format as the list above) and the
+        list stays identical everywhere. Use a direct raw link: GitHub raw and Dropbox links work,
+        and share-page links are converted automatically. <b>Sync now replaces the whole list</b>
+        with the file's contents.
+      </p>
     </header>
 
     <main class="wrap">

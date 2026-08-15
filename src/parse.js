@@ -176,3 +176,90 @@ function dupeKeyFor(e) {
   return e.domain ? 'd:' + e.domain : 'n:' + (e.name || '').toLowerCase();
 }
 
+
+// ------------------------------------------------------------- remote list
+//
+// One shared .txt file at a URL keeps every computer's list identical: the URL
+// syncs through chrome.storage.sync, each machine fetches the file itself.
+// This lives here so the popup and the manager run the SAME pipeline - two
+// copies had already started to drift the day they were written.
+
+/* Staleness window for the quiet auto-refresh. Per machine. */
+const REMOTE_STALE_MS = 12 * 3600 * 1000;
+
+/* chrome.storage.local, with a no-op stand-in for test harnesses that only
+ * stub .sync. */
+function remoteLocalStore() {
+  return (
+    (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) || {
+      get: (d, cb) => cb(d),
+      set: () => {},
+    }
+  );
+}
+
+/* Fetch and validate the file. Resolves { text, targets, skipped }; rejects
+ * with an Error whose message is fit to show the user. */
+function fetchRemoteList(url) {
+  return fetch(url, { cache: 'no-store' })
+    .then((res) => {
+      if (!res.ok) throw new Error(`the server said ${res.status}`);
+      return res.text();
+    })
+    .then((text) => {
+      // A share page instead of the raw file is the classic mistake.
+      if (/^\s*(<!doctype|<html)/i.test(text)) {
+        throw new Error('that link returns a web page, not the file - use a raw/direct link');
+      }
+      const { targets, skipped } = parseDomains(text);
+      if (!targets.length) throw new Error('no domains found in that file');
+      return { text, targets, skipped };
+    })
+    .catch((err) => {
+      /* A CORS block reports as a bare TypeError with no useful message. */
+      throw err instanceof TypeError
+        ? new Error('could not reach that URL (the host must allow cross-site fetches, or use a GitHub raw link)')
+        : err;
+    });
+}
+
+/* Replace the whole list with the remote file. The list it overwrites is
+ * backed up to chrome.storage.local first, so one wrong URL is not a
+ * permanent loss - restoreRemoteBackup() brings it back. */
+function applyRemoteList(url) {
+  return fetchRemoteList(url).then(
+    ({ text, targets, skipped }) =>
+      new Promise((resolve, reject) => {
+        chrome.storage.sync.get({ domainsText: '', targets: [] }, (prev) => {
+          remoteLocalStore().set({
+            remoteBackup: prev.domainsText || '',
+            remoteLastFetch: Date.now(),
+          });
+          chrome.storage.sync.set({ targets, domainsText: text }, () => {
+            if (chrome.runtime.lastError) {
+              reject(new Error('file too long for sync storage'));
+              return;
+            }
+            resolve({ text, targets, skipped });
+          });
+        });
+      })
+  );
+}
+
+/* Put back whatever the last remote sync overwrote. */
+function restoreRemoteBackup() {
+  return new Promise((resolve, reject) => {
+    remoteLocalStore().get({ remoteBackup: '' }, (l) => {
+      if (!l.remoteBackup) {
+        reject(new Error('no backup to restore'));
+        return;
+      }
+      const { targets } = parseDomains(l.remoteBackup);
+      chrome.storage.sync.set({ targets, domainsText: l.remoteBackup }, () => {
+        if (chrome.runtime.lastError) reject(new Error('could not restore'));
+        else resolve({ targets });
+      });
+    });
+  });
+}

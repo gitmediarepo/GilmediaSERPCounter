@@ -32,6 +32,7 @@
     showLocal: true,
     showLsa: true,
     showPanel: true,
+    showPaginationTop: true, // clone the page-number nav above the first result
     debug: false,
   };
 
@@ -64,30 +65,37 @@
    * own origin, so this data is not fully ours to trust. Anything malformed is
    * dropped rather than rendered. */
   function loadRun(q) {
+    /* Entries and mentions share one shape, so they share one scrubber. */
+    const scrubList = (list) =>
+      (Array.isArray(list) ? list : [])
+        .filter((e) => e && typeof e.key === 'string' && Array.isArray(e.hits))
+        .map((e) => ({
+          key: String(e.key).slice(0, 120),
+          name: typeof e.name === 'string' ? e.name.slice(0, 120) : '',
+          hits: e.hits
+            .filter((h) => h && Number.isFinite(h.rank))
+            .map((h) => ({
+              id: String(h.id || '').slice(0, 60),
+              kind: /^(organic|ad|lsa|local|maps)$/.test(h.kind) ? h.kind : 'organic',
+              rank: h.rank,
+              page: Number.isFinite(h.page) ? h.page : 1,
+              label: String(h.label || '').slice(0, 40),
+            })),
+        }));
+
     try {
       const s = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
       if (!s || s.q !== q || !Array.isArray(s.pages) || !Array.isArray(s.entries)) throw 0;
       return {
         q,
         pages: s.pages.filter((p) => Number.isFinite(p)),
-        entries: s.entries
-          .filter((e) => e && typeof e.key === 'string' && Array.isArray(e.hits))
-          .map((e) => ({
-            key: String(e.key).slice(0, 120),
-            name: typeof e.name === 'string' ? e.name.slice(0, 120) : '',
-            hits: e.hits
-              .filter((h) => h && Number.isFinite(h.rank))
-              .map((h) => ({
-                id: String(h.id || '').slice(0, 60),
-                kind: /^(organic|ad|lsa|local|maps)$/.test(h.kind) ? h.kind : 'organic',
-                rank: h.rank,
-                page: Number.isFinite(h.page) ? h.page : 1,
-                label: String(h.label || '').slice(0, 40),
-              })),
-          })),
+        entries: scrubList(s.entries),
+        // Mentions accumulate across pages exactly like entries. Dropping them
+        // here silently forgot page 1's mentions the moment page 2 loaded.
+        mentions: scrubList(s.mentions),
       };
     } catch {}
-    return { q, pages: [], entries: [] };
+    return { q, pages: [], entries: [], mentions: [] };
   }
 
   function saveRun(s) {
@@ -138,6 +146,26 @@
 
   function textOf(el) {
     return (el && el.textContent ? el.textContent : '').replace(/\s+/g, ' ').trim();
+  }
+
+  /* Maps and some local pack cards render the business name only as an
+   * aria-label or an image's alt text, never as visible text, so a plain
+   * textContent scan can miss it entirely. This folds in every aria-label,
+   * alt and title on the card and its descendants so name matching sees it. */
+  function richTextOf(el) {
+    if (!el) return '';
+    const parts = [textOf(el)];
+    if (el.getAttribute) {
+      const own = el.getAttribute('aria-label') || el.getAttribute('alt') || el.getAttribute('title');
+      if (own) parts.push(own);
+    }
+    if (el.querySelectorAll) {
+      for (const node of el.querySelectorAll('[aria-label], [alt], [title]')) {
+        const v = node.getAttribute('aria-label') || node.getAttribute('alt') || node.getAttribute('title');
+        if (v) parts.push(v);
+      }
+    }
+    return parts.join(' ').replace(/\s+/g, ' ').trim();
   }
 
   function isHttpLink(a) {
@@ -388,8 +416,37 @@
     return out;
   }
 
+  /* Google sometimes renders the same local pack, LSA or Maps listing twice in
+   * the DOM (a compact view plus a hidden expanded one). Without this, the same
+   * business shows up at two ranks instead of one. Same placeId, or same
+   * host + title when there is no placeId, counts as the same listing. */
+  function dedupeByPlace(list) {
+    const seen = new Set();
+    return list.filter((entry) => {
+      /* Only a real identity may collapse two rows: a place id, or a website
+       * plus name. A bare name is NOT identity - two locations of the same
+       * franchise share it, and dropping one shifts every rank after it. */
+      const key = entry.placeId || (entry.host ? `${entry.host}|${entry.title}`.toLowerCase() : '');
+      if (!key) return true;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  /* The business's own site, when the card exposes one. Local pack (GBP) cards
+   * often carry a "Website" link; Local Services Ads mostly route everything
+   * through localservices.google.com and don't, but some layouts do surface one,
+   * so both local and LSA try the same extraction rather than LSA giving up on
+   * domain matching outright. */
+  function siteLinkOf(block) {
+    return block.querySelector(
+      'a[href^="http"]:not([href*="google."]):not([href*="localservices.google."])'
+    );
+  }
+
   function describeLocalRow(block) {
-    const site = block.querySelector('a[href^="http"]:not([href*="google."])');
+    const site = siteLinkOf(block);
     const nameEl = block.querySelector(LOCAL_NAME_SEL);
     return {
       block,
@@ -410,7 +467,7 @@
       );
       rows = rows.filter((r, i) => rows.indexOf(r) === i && r !== module);
     }
-    return inDomOrder(rows.map(describeLocalRow));
+    return dedupeByPlace(inDomOrder(rows.map(describeLocalRow)));
   }
 
   function lsaResults(module) {
@@ -429,14 +486,19 @@
         }
       }
     }
-    return inDomOrder(
-      rows.map((block) => ({
-        block,
-        host: '',
-        title: textOf(block.querySelector(LOCAL_NAME_SEL)) || textOf(block).slice(0, 70),
-        url: '',
-        placeId: placeIdOf(block),
-      }))
+    return dedupeByPlace(
+      inDomOrder(
+        rows.map((block) => {
+          const site = siteLinkOf(block);
+          return {
+            block,
+            host: site ? hostOf(site.href) : '',
+            title: textOf(block.querySelector(LOCAL_NAME_SEL)) || textOf(block).slice(0, 70),
+            url: site ? site.href : '',
+            placeId: placeIdOf(block),
+          };
+        })
+      )
     );
   }
 
@@ -449,15 +511,16 @@
       const block = a.closest('div[jsaction]') || a.parentElement;
       if (!block || seen.has(block)) continue;
       seen.add(block);
+      const site = siteLinkOf(block);
       out.push({
         block,
-        host: '',
+        host: site ? hostOf(site.href) : '',
         title: a.getAttribute('aria-label') || textOf(block).slice(0, 70),
         url: a.href,
         placeId: placeIdOf(a),
       });
     }
-    return inDomOrder(out);
+    return dedupeByPlace(inDomOrder(out));
   }
 
   // --------------------------------------------------------------- matching
@@ -509,7 +572,7 @@
           continue;
         }
         if (localish) {
-          if (blockText === null) blockText = textOf(entry.block).toLowerCase();
+          if (blockText === null) blockText = richTextOf(entry.block).toLowerCase();
           if (blockText.includes(t.name)) nameHit = { target: t, via: 'name' };
         }
       }
@@ -800,6 +863,8 @@
     if (!cfg.enabled) {
       const panel = document.getElementById(`${NS}-panel`);
       if (panel) panel.remove();
+      const pagetop = document.getElementById(`${NS}-pagination-top`);
+      if (pagetop) pagetop.remove();
       document.dispatchEvent(new CustomEvent(`${NS}:painted`));
       return;
     }
@@ -898,8 +963,99 @@
 
     lastHosts = [...hostsSeen].sort();
 
+    paintTopPagination();
     renderPanel(sections, hits, run);
     document.dispatchEvent(new CustomEvent(`${NS}:painted`));
+  }
+
+  /* Top pagination, built from scratch rather than cloned.
+   *
+   * Earlier versions tried to find Google's bottom pagination bar and clone it
+   * up top. That broke constantly: the bar is a div[role="navigation"], not a
+   * <nav>; its classes shuffle between layouts; and on some result types it is
+   * absent outright. None of that fragility is necessary, because the one thing
+   * about Google search that has not changed in a decade is the URL scheme:
+   * page N of a query is the same URL with start=(N-1)*num. So the bar here is
+   * ours - plain <a href> links we generate ourselves, no dependency on
+   * Google's DOM beyond an insertion point above the first result. */
+  function paintTopPagination() {
+    const existing = document.querySelector(`#${NS}-pagination-top`);
+    if (!cfg.showPaginationTop || isMaps) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    /* Only meaningful on an actual query page. */
+    if (!queryKey()) {
+      if (existing) existing.remove();
+      return;
+    }
+
+    const per = parseInt(new URLSearchParams(location.search).get('num') || '10', 10) || 10;
+    const page = currentPage();
+
+    if (existing) {
+      /* Right bar for this page already in place, and still attached above a
+       * result. Google rerenders parts of the page after load, which can strand
+       * the bar in a detached subtree - rebuild if so. */
+      if (existing.isConnected && existing.dataset.page === String(page)) return;
+      existing.remove();
+    }
+
+    /* Insertion point: directly above the first organic result, wherever the
+     * results actually live on this layout. No first result, no bar - an
+     * empty or non-web results page has nothing to paginate over. */
+    const root = resultsRoot();
+    if (!root) return;
+    const h3 = root.querySelector('h3');
+    const firstResult =
+      (h3 && h3.closest('div.MjjYud, div.g, div[data-sokoban-container]')) ||
+      root.querySelector('div.g, [data-sokoban-container]');
+    if (!firstResult || !firstResult.parentElement) return;
+
+    const urlFor = (p) => {
+      const u = new URL(location.href);
+      if (p <= 1) u.searchParams.delete('start');
+      else u.searchParams.set('start', String((p - 1) * per));
+      return u.toString();
+    };
+
+    const bar = document.createElement('div');
+    bar.id = `${NS}-pagination-top`;
+    bar.className = `${NS}-pagetop`;
+    bar.dataset.page = String(page);
+    bar.setAttribute('role', 'navigation');
+    bar.setAttribute('aria-label', 'Page navigation (SERP Counter)');
+
+    const addLink = (label, p, extraClass) => {
+      const a = document.createElement('a');
+      a.textContent = label;
+      a.href = urlFor(p);
+      a.className = `${NS}-pagetop-link${extraClass ? ' ' + extraClass : ''}`;
+      bar.appendChild(a);
+    };
+
+    if (page > 1) addLink('‹ Prev', page - 1, `${NS}-pagetop-nav`);
+
+    /* Seven page links in a window that slides with the current page: two
+     * behind, four ahead. Deep in the results the early pages drop away
+     * rather than pinning the bar to 1-7. */
+    const first = Math.max(1, page - 2);
+    for (let p = first; p < first + 7; p++) {
+      if (p === page) {
+        const s = document.createElement('span');
+        s.textContent = String(p);
+        s.className = `${NS}-pagetop-link ${NS}-pagetop-current`;
+        s.setAttribute('aria-current', 'page');
+        bar.appendChild(s);
+      } else {
+        addLink(String(p), p);
+      }
+    }
+
+    addLink('Next ›', page + 1, `${NS}-pagetop-nav`);
+
+    firstResult.parentElement.insertBefore(bar, firstResult);
   }
 
   const rescan = debounce(scan, 350);
@@ -964,7 +1120,8 @@
     const obs = new MutationObserver((records) => {
       for (const r of records) {
         const t = r.target;
-        if (t && t.closest && t.closest(`#${NS}-panel, .${NS}-badge, .${NS}-gbp`)) continue;
+        if (t && t.closest && t.closest(`#${NS}-panel, .${NS}-badge, .${NS}-gbp, #${NS}-pagination-top`))
+          continue;
         rescan();
         return;
       }

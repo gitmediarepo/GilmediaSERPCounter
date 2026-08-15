@@ -4,225 +4,151 @@
     <meta charset="utf-8" />
     <title>Gilmedia SERP Counter</title>
     <style>
+      /* ------------------------------------------------ design tokens */
       :root {
         color-scheme: dark;
+        --bg: #141416;
+        --surface: #1b1b1e;
+        --surface-2: #222226;
+        --surface-3: #2a2a2f;
+        --line: #2c2c31;
+        --line-soft: #242428;
+        --text: #f4f4f5;
+        --muted: #9a9aa3;
+        --faint: #6b6b73;
+        --accent: #f37333;
+        --accent-hover: #ff8547;
+        --accent-soft: rgba(243, 115, 51, 0.14);
+        --on: #7fa35c;
+        --ok: #a9c489;
+        --bad: #e2a08a;
+        --danger: #c99;
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --t-fast: 140ms ease-out;
       }
       * {
         box-sizing: border-box;
       }
       body {
-        width: 380px;
+        width: 480px;
         margin: 0;
         padding: 0;
-        background: #161616;
-        color: #f2f2f2;
-        font: 400 13px/1.45 Mulish, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        font: 400 13px/1.5 Mulish, -apple-system, Segoe UI, Arial, sans-serif;
       }
+
+      /* ------------------------------------------------------ header */
       header {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 8px;
-        padding: 12px 14px;
-        border-bottom: 1px solid #2a2a2a;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, #1d1d20, var(--bg));
+      }
+      .mark {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background: var(--accent);
+        flex: none;
       }
       h1 {
         margin: 0;
         font-size: 13px;
-        font-weight: 700;
-        color: #f37333;
-        letter-spacing: 0.3px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: 0.4px;
       }
       .ver {
-        font-size: 11px;
-        color: #777;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 99px;
+        padding: 1px 7px;
       }
       .count {
         margin-left: auto;
         font-size: 11px;
         font-weight: 700;
-        color: #a9c489;
+        color: var(--ok);
       }
-      section {
-        padding: 12px 14px;
-        border-bottom: 1px solid #222;
+      .spinner {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        border-top-color: var(--accent);
+        animation: gil-spin 700ms linear infinite;
+        flex: none;
       }
-      section:last-of-type {
-        border-bottom: 0;
-      }
-      h2 {
-        margin: 0 0 6px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: #8a8a8a;
-      }
-      .hint {
-        margin: 0 0 8px;
-        font-size: 11px;
-        color: #8a8a8a;
-      }
-      textarea {
-        width: 100%;
-        height: 190px;
-        padding: 9px 10px;
-        border: 1px solid #333;
-        border-radius: 6px;
-        background: #1b1b1b;
-        color: #f2f2f2;
-        font: 400 12px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace;
-        resize: vertical;
-      }
-      textarea:focus {
-        outline: none;
-        border-color: #f37333;
-      }
-      textarea.drop {
-        border-color: #627d47;
-        background: #1d211a;
-      }
-      .bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 8px;
-      }
-      button {
-        border: 1px solid #3a3a3a;
-        background: #232323;
-        color: #ddd;
-        border-radius: 6px;
-        padding: 5px 10px;
-        font: 700 11px/1.4 Mulish, Arial, sans-serif;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #2d2d2d;
-        border-color: #4a4a4a;
-      }
-      button.primary {
-        background: #f37333;
-        border-color: #f37333;
-        color: #161616;
-      }
-      button.primary:hover {
-        background: #ff8547;
-      }
-      button.danger {
-        color: #c99;
-      }
-      button.danger:hover {
-        border-color: #a33;
-        color: #f4a0a0;
-      }
-      /* Armed state: a second click within a few seconds actually wipes it. */
-      button.danger.armed {
-        background: #7a2020;
-        border-color: #a33;
-        color: #ffe2e2;
-      }
-      .status {
-        margin-left: auto;
-        font-size: 11px;
-        color: #8a8a8a;
-      }
-      .status.ok {
-        color: #a9c489;
-      }
-      .status.bad {
-        color: #e2a08a;
-      }
-      details {
-        margin-top: 8px;
-      }
-      summary {
-        cursor: pointer;
-        font-size: 11px;
-        color: #8a8a8a;
-        list-style: none;
-      }
-      summary::-webkit-details-marker {
+      .spinner[hidden] {
         display: none;
       }
-      pre {
-        margin: 6px 0 0;
-        padding: 8px 10px;
-        background: #1b1b1b;
-        border: 1px solid #2b2b2b;
-        border-radius: 6px;
-        font: 400 11px/1.7 ui-monospace, Consolas, monospace;
-        color: #c9c4bd;
-        white-space: pre;
-        overflow-x: auto;
+      @keyframes gil-spin {
+        to {
+          transform: rotate(360deg);
+        }
       }
-      label.chk {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 0;
-        cursor: pointer;
-      }
-      label.chk input {
-        accent-color: #627d47;
-        width: 15px;
-        height: 15px;
-      }
-      code {
-        font-family: ui-monospace, Consolas, monospace;
-        background: #232323;
-        border: 1px solid #333;
-        border-radius: 4px;
-        padding: 1px 4px;
-        color: #f0c9ab;
-      }
-      /* Master switch. Deliberately the largest control in the popup: it is the
-         one someone reaches for in a hurry with a person behind them. */
+
+      /* ------------------------------------------------- master card */
       .master {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 11px 14px;
-        border-bottom: 1px solid #222;
-        background: #1a1a1a;
+        gap: 12px;
+        margin: 12px 16px 0;
+        padding: 12px 14px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: var(--surface);
         cursor: pointer;
         user-select: none;
+        transition: border-color var(--t-fast);
+      }
+      .master:hover {
+        border-color: #3a3a40;
       }
       .master .lbl {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 700;
-        color: #f2f2f2;
       }
       .master .state {
         margin-left: auto;
         font-size: 11px;
-        color: #a9c489;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--ok);
       }
-      .master.off .state {
-        color: #8a8a8a;
-      }
+      .master.off .state,
       .master.off .lbl {
-        color: #8a8a8a;
+        color: var(--muted);
       }
       .switch {
         position: relative;
         flex: none;
-        width: 42px;
-        height: 24px;
-        border-radius: 12px;
-        background: #3a3a3a;
-        transition: background 160ms ease;
+        width: 44px;
+        height: 25px;
+        border-radius: 13px;
+        background: var(--surface-3);
+        transition: background var(--t-fast);
       }
       .switch::after {
         content: '';
         position: absolute;
         top: 2px;
         left: 2px;
-        width: 20px;
-        height: 20px;
+        width: 21px;
+        height: 21px;
         border-radius: 50%;
         background: #f2f2f2;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
-        transition: transform 160ms ease;
+        box-shadow: var(--shadow-sm);
+        transition: transform var(--t-fast);
       }
       .master input {
         position: absolute;
@@ -231,48 +157,265 @@
         height: 0;
       }
       .master input:checked ~ .switch {
-        background: #627d47;
+        background: var(--on);
       }
       .master input:checked ~ .switch::after {
-        transform: translateX(18px);
+        transform: translateX(19px);
       }
       .master input:focus-visible ~ .switch {
-        outline: 2px solid #f37333;
+        outline: 2px solid var(--accent);
         outline-offset: 2px;
       }
-      /* Everything below the switch dims when it is off, so the state is
-         obvious without reading the label. */
       body.off section {
-        opacity: 0.4;
+        opacity: 0.45;
       }
-      footer {
-        padding: 10px 14px 14px;
-        border-top: 1px solid #2a2a2a;
+
+      /* ----------------------------------------------------- layout */
+      section {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line-soft);
+      }
+      section:last-of-type {
+        border-bottom: 0;
+      }
+      h2 {
+        margin: 0 0 8px;
+        font-size: 10.5px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--muted);
+      }
+      .hint {
+        margin: 0 0 8px;
         font-size: 11px;
-        color: #6f6f6f;
+        color: var(--muted);
+      }
+      code {
+        font-family: ui-monospace, Consolas, monospace;
+        background: var(--surface-2);
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1px 4px;
+        color: #f0c9ab;
+      }
+
+      /* ---------------------------------------------------- buttons */
+      button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 30px;
+        padding: 0 11px;
+        border: 1px solid var(--line);
+        background: var(--surface-2);
+        color: #ddd;
+        border-radius: var(--radius-sm);
+        font: 700 11.5px/1 Mulish, Arial, sans-serif;
+        cursor: pointer;
+        transition: background var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+      }
+      button:hover {
+        background: var(--surface-3);
+        border-color: #3f3f46;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      button svg {
+        width: 13px;
+        height: 13px;
+        flex: none;
+      }
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #161616;
+      }
+      button.primary:hover {
+        background: var(--accent-hover);
+        border-color: var(--accent-hover);
+      }
+      button.danger {
+        color: var(--danger);
+      }
+      button.danger:hover {
+        border-color: #a33;
+        color: #f4a0a0;
+      }
+      button.danger.armed {
+        background: #7a2020;
+        border-color: #a33;
+        color: #ffe2e2;
+      }
+      .bar {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+      .status {
+        margin-left: auto;
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .status.ok {
+        color: var(--ok);
+      }
+      .status.bad {
+        color: var(--bad);
+      }
+
+      /* --------------------------------------------------- textarea */
+      textarea {
+        width: 100%;
+        height: 200px;
+        margin-top: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: #17171a;
+        color: var(--text);
+        font: 400 12px/1.65 ui-monospace, SFMono-Regular, Consolas, monospace;
+        resize: vertical;
+        transition: border-color var(--t-fast);
+      }
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      textarea.drop {
+        border-color: var(--on);
+        background: #1c211a;
+      }
+
+      details {
+        margin-top: 10px;
+      }
+      summary {
+        cursor: pointer;
+        font-size: 11px;
+        color: var(--muted);
+        list-style: none;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::before {
+        content: '▸ ';
+        color: var(--faint);
+      }
+      details[open] summary::before {
+        content: '▾ ';
+      }
+      pre {
+        margin: 8px 0 0;
+        padding: 10px 12px;
+        background: #17171a;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-sm);
+        font: 400 11px/1.7 ui-monospace, Consolas, monospace;
+        color: #c9c4bd;
+        white-space: pre;
+        overflow-x: auto;
+      }
+
+      /* ---------------------------------------------------- toggles */
+      label.chk {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+        cursor: pointer;
+        user-select: none;
+        border-radius: var(--radius-sm);
+      }
+      label.chk:hover {
+        color: #fff;
+      }
+      label.chk input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle {
+        position: relative;
+        flex: none;
+        width: 34px;
+        height: 20px;
+        border-radius: 10px;
+        background: var(--surface-3);
+        transition: background var(--t-fast);
+      }
+      .toggle::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #f2f2f2;
+        box-shadow: var(--shadow-sm);
+        transition: transform var(--t-fast);
+      }
+      label.chk input:checked ~ .toggle {
+        background: var(--on);
+      }
+      label.chk input:checked ~ .toggle::after {
+        transform: translateX(14px);
+      }
+      label.chk input:focus-visible ~ .toggle {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      /* ----------------------------------------------------- footer */
+      footer {
+        padding: 12px 16px 14px;
+        border-top: 1px solid var(--line);
+        font-size: 11px;
+        color: var(--faint);
       }
       footer .credit {
-        margin-top: 6px;
-        padding-top: 6px;
-        border-top: 1px solid #222;
-        color: #5f5f5f;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--line-soft);
+        color: #5f5f66;
       }
       footer a {
-        color: #8a8a8a;
+        color: var(--muted);
         text-decoration: none;
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid var(--line);
+        transition: color var(--t-fast), border-color var(--t-fast);
       }
       footer a:hover {
-        color: #f37333;
-        border-bottom-color: #f37333;
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
       }
     </style>
+    <script src="parse.js" defer></script>
+    <script src="popup.js" defer></script>
   </head>
   <body>
     <header>
+      <span class="mark" aria-hidden="true"></span>
       <h1>GILMEDIA SERP COUNTER</h1>
-      <span class="ver">v1.9</span>
+      <span class="ver">v2.0.0</span>
       <span class="count" id="count"></span>
+      <span class="spinner" id="loading" title="Loading your saved list"></span>
     </header>
 
     <label class="master" id="master">
@@ -288,28 +431,69 @@
         One domain per line: <code>domain | Business Name</code>. The name is optional. Only the
         domains that actually appear on a search show up in the panel.
       </p>
-      <textarea
-        id="domains"
-        spellcheck="false"
-        placeholder="walmart.com | Walmart"
-      ></textarea>
       <div class="bar">
-        <button class="primary" id="save">Save list</button>
-        <button id="manage" title="Open the full manager: search, edit rows, find duplicates">
-          Manage
+        <button id="import" title="Merge a .txt or .csv list into this one">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Import</span>
         </button>
-        <button id="import" title="Merge a .txt or .csv list into this one">Import</button>
-        <button id="export" title="Download the list as a .txt file">Export</button>
-        <button id="example">Example</button>
-        <button id="clear" class="danger">Clear</button>
-        <span class="status" id="status"></span>
+        <button id="export" title="Download the list as a .txt file">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 14 12 9 17 14"></polyline>
+            <line x1="12" y1="9" x2="12" y2="21"></line>
+          </svg>
+          <span>Export</span>
+        </button>
       </div>
       <input type="file" id="file" accept=".txt,.csv,.tsv,text/plain,text/csv" hidden />
+      <textarea id="domains" placeholder="Loading your list..."></textarea>
       <p class="hint" style="margin: 8px 0 0">
         Import merges, it never overwrites. You can also drag a file straight onto the box, or just
         paste. Use <b>Clear</b> first if you want to replace the list outright. For a long list,
         <b>Manage</b> opens a full page with search, one row per domain and a duplicate check.
       </p>
+
+      <div class="bar" style="margin-top: 10px">
+        <button class="primary" id="save">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span>Save list</span>
+        </button>
+        <button id="manage" title="Open the full manager: search, edit rows, find duplicates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>Manage</span>
+        </button>
+        <button id="example" title="Append a few example rows">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 18h6"></path>
+            <path d="M10 22h4"></path>
+            <path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"></path>
+          </svg>
+          <span>Example</span>
+        </button>
+        <button id="clear" class="danger" title="Delete the whole list (asks twice)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span id="clearLabel">Clear</span>
+        </button>
+        <span class="status" id="status"></span>
+      </div>
 
       <details>
         <summary>Format and examples</summary>
@@ -338,18 +522,24 @@ Home Depot
 
     <section>
       <h2>Show</h2>
-      <label class="chk"><input type="checkbox" id="showOrganic" /> Organic results</label>
-      <label class="chk"><input type="checkbox" id="showAds" /> Google Ads</label>
-      <label class="chk"><input type="checkbox" id="showLocal" /> Local pack / Maps</label>
-      <label class="chk"><input type="checkbox" id="showLsa" /> Local Services Ads</label>
+      <label class="chk"><input type="checkbox" id="showOrganic" /><span class="toggle" aria-hidden="true"></span> Organic results</label>
+      <label class="chk"><input type="checkbox" id="showAds" /><span class="toggle" aria-hidden="true"></span> Google Ads</label>
+      <label class="chk"><input type="checkbox" id="showLocal" /><span class="toggle" aria-hidden="true"></span> Local pack / Maps</label>
+      <label class="chk"><input type="checkbox" id="showLsa" /><span class="toggle" aria-hidden="true"></span> Local Services Ads</label>
       <label class="chk" title="Results on other sites that carry your business name: LinkedIn, Indeed, ZoomInfo and the like">
-        <input type="checkbox" id="showMentions" /> Mentions on other sites
+        <input type="checkbox" id="showMentions" /><span class="toggle" aria-hidden="true"></span> Mentions on other sites
       </label>
-      <label class="chk"><input type="checkbox" id="showPanel" /> Summary panel</label>
-      <label class="chk"><input type="checkbox" id="debug" /> Log detection to the console</label>
+      <label class="chk" title="Repeat the page-number bar above the first result, so paging doesn't need a scroll back down">
+        <input type="checkbox" id="showPaginationTop" /><span class="toggle" aria-hidden="true"></span> Pagination at top of results
+      </label>
+      <label class="chk"><input type="checkbox" id="showPanel" /><span class="toggle" aria-hidden="true"></span> Summary panel</label>
+      <label class="chk"><input type="checkbox" id="debug" /><span class="toggle" aria-hidden="true"></span> Log detection to the console</label>
     </section>
 
     <footer>
+      <div style="display: flex; gap: 12px; margin-bottom: 8px">
+        <a href="help.html" target="_blank" rel="noopener noreferrer">Help</a>
+      </div>
       <div>Reload the results page after saving to re-check it.</div>
       <div class="credit">
         Built by
@@ -363,8 +553,5 @@ Home Depot
         >
       </div>
     </footer>
-
-    <script src="parse.js"></script>
-    <script src="popup.js"></script>
   </body>
 </html>

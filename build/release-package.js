@@ -27,6 +27,7 @@ const INCLUDE = [
   'src/options.html',
   'src/options.js',
   'src/parse.js',
+  'src/help.html',
   'icons/icon16.png',
   'icons/icon32.png',
   'icons/icon48.png',

@@ -299,28 +299,144 @@ document.addEventListener('drop', (e) => {
   }
 });
 
-/* Clear needs two clicks. There is no undo. */
+/* Clear needs two clicks. There is no undo. The button is icon-only, so the
+ * armed state shows through its colour and the status line, never by swapping
+ * text (that would wipe the icon). */
 let armed = null;
 $('clear').addEventListener('click', () => {
   const btn = $('clear');
   if (!armed) {
     btn.classList.add('armed');
-    btn.textContent = 'Clear all? click again';
-    setStatus('this wipes the whole list', 'bad');
+    btn.title = 'Click again to delete ALL domains';
+    setStatus('click again to wipe the whole list', 'bad');
     armed = setTimeout(() => {
       armed = null;
       btn.classList.remove('armed');
-      btn.textContent = 'Clear all';
+      btn.title = 'Delete all domains';
     }, 4000);
     return;
   }
   clearTimeout(armed);
   armed = null;
   btn.classList.remove('armed');
-  btn.textContent = 'Clear all';
+  btn.title = 'Delete all domains';
   lines = [];
   commit('cleared');
   render();
 });
+
+// ------------------------------------------------------------- remote sync
+
+/* One shared .txt file, one URL, every computer pulls the same list. The URL
+ * lives in chrome.storage.sync, so pasting it on one machine carries it to the
+ * rest; each machine fetches the file itself. No host permissions are involved:
+ * a plain fetch works against any host that serves CORS headers, which the
+ * usual raw-file homes (GitHub raw, Dropbox direct links) all do. That keeps
+ * the extension's permission footprint untouched, which matters for the store's
+ * trust rating. */
+
+function setRemoteStatus(msg, kind, withUndo) {
+  const el = $('remoteStatus');
+  if (!el) return;
+  el.textContent = msg;
+  el.className = `status${kind ? ' ' + kind : ''}`;
+
+  /* Every sync replaces the whole list in one keystroke, so every sync gets
+   * an undo. The backup was written by applyRemoteList before the overwrite. */
+  if (withUndo) {
+    const undo = document.createElement('a');
+    undo.textContent = 'undo';
+    undo.href = '#';
+    undo.style.marginLeft = '8px';
+    undo.addEventListener('click', (e) => {
+      e.preventDefault();
+      restoreRemoteBackup()
+        .then(({ targets }) => {
+          setRemoteStatus(`restored previous list (${targets.length} domains)`, 'ok');
+        })
+        .catch((err) => setRemoteStatus(err.message, 'bad'));
+    });
+    el.appendChild(undo);
+  }
+}
+
+/* People paste the link they have, which is usually the share page, not the
+ * file. Convert the two everyone actually uses; pass anything else through. */
+function normalizeRemoteUrl(raw) {
+  let url = (raw || '').trim();
+  if (!url) return '';
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  // github.com/user/repo/blob/main/file.txt -> raw.githubusercontent.com/user/repo/main/file.txt
+  const gh = url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/i);
+  if (gh) return `https://raw.githubusercontent.com/${gh[1]}/${gh[2]}/${gh[3]}`;
+
+  // www.dropbox.com/scl/... -> dl.dropboxusercontent.com/scl/... (direct download host)
+  const db = url.match(/^https:\/\/(?:www\.)?dropbox\.com\/(.+)$/i);
+  if (db) {
+    const path = db[1].replace(/([?&])dl=0/, '$1dl=1');
+    return `https://dl.dropboxusercontent.com/${path}`;
+  }
+
+  return url;
+}
+
+/* Fetch, validate, back up, replace - the pipeline itself lives in parse.js
+ * (applyRemoteList), shared verbatim with the popup's auto-refresh. */
+function syncFromRemote(url, { quiet } = {}) {
+  if (!url) {
+    setRemoteStatus('paste a URL first', 'bad');
+    return;
+  }
+  if (!quiet) setRemoteStatus('fetching...');
+
+  applyRemoteList(url)
+    .then(({ text, targets, skipped }) => {
+      lines = parseLines(text);
+      $('text').value = text;
+      render();
+      setRemoteStatus(
+        `synced ${targets.length} domain${targets.length === 1 ? '' : 's'}${skipped.length ? `, ${skipped.length} line(s) skipped` : ''} -`,
+        'ok',
+        true
+      );
+    })
+    .catch((err) => setRemoteStatus(err.message, 'bad'));
+}
+
+const remoteUrlEl = $('remoteUrl');
+const remoteAutoEl = $('remoteAuto');
+
+function saveRemoteSettings() {
+  const url = normalizeRemoteUrl(remoteUrlEl.value);
+  if (url && url !== remoteUrlEl.value.trim()) remoteUrlEl.value = url;
+  chrome.storage.sync.set({ remoteUrl: url, remoteAuto: remoteAutoEl.checked });
+  return url;
+}
+
+if (remoteUrlEl && remoteAutoEl) {
+  $('remoteSync').addEventListener('click', () => syncFromRemote(saveRemoteSettings()));
+  remoteUrlEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') syncFromRemote(saveRemoteSettings());
+  });
+  remoteUrlEl.addEventListener('blur', saveRemoteSettings);
+  remoteAutoEl.addEventListener('change', saveRemoteSettings);
+
+  chrome.storage.sync.get({ remoteUrl: '', remoteAuto: true }, (cfg) => {
+    remoteUrlEl.value = cfg.remoteUrl || '';
+    remoteAutoEl.checked = cfg.remoteAuto !== false;
+
+    /* Auto-refresh: quietly pull the file when this page opens if the local
+     * copy is more than 12 hours old. Per machine, so a fresh computer with a
+     * synced URL picks the list up on first open. */
+    if (cfg.remoteUrl && cfg.remoteAuto !== false) {
+      remoteLocalStore().get({ remoteLastFetch: 0 }, (l) => {
+        if (Date.now() - (l.remoteLastFetch || 0) > REMOTE_STALE_MS) {
+          syncFromRemote(cfg.remoteUrl, { quiet: true });
+        }
+      });
+    }
+  });
+}
 
 load();
