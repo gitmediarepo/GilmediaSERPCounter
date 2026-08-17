@@ -524,6 +524,15 @@
           share-page links are converted automatically. The file's host must allow cross-site
           fetches (CORS).
         </p>
+        <p>
+          If the file sits behind <strong>HTTP Basic Auth</strong>, click the lock icon next to
+          Auto-refresh to reveal a username and password field. Credentials are sent as an
+          Authorization header on the fetch, saved in your synced Chrome settings, and never
+          appear in the URL itself. Each computer that points at the same URL still needs its own
+          copy of the username and password entered once. The server must also answer the
+          browser's CORS preflight (an OPTIONS request) for the Authorization header, not just the
+          GET - a plain <code>.htpasswd</code> alone is not enough.
+        </p>
 
         <h3>Domain List Manager</h3>
         <p>

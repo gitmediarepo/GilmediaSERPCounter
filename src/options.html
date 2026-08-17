@@ -411,13 +411,26 @@
         <label class="remote-auto" title="Re-fetch the file when the extension opens, if the last fetch is older than 12 hours">
           <input type="checkbox" id="remoteAuto" /> Auto-refresh
         </label>
+        <button class="icon-btn" id="remoteAuthToggle" title="This file needs a username and password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </button>
         <span class="status" id="remoteStatus"></span>
+      </div>
+      <div class="wrap remote" id="remoteAuthRow" hidden>
+        <span class="lbl">Auth</span>
+        <input type="text" id="remoteUser" placeholder="username - leave blank if the file is public" spellcheck="false" autocomplete="off" style="max-width: 220px" />
+        <input type="password" id="remotePass" placeholder="password" autocomplete="off" style="max-width: 220px" />
       </div>
       <p class="wrap remote-hint">
         Point every computer at one shared <b>.txt</b> file (same format as the list above) and the
         list stays identical everywhere. Use a direct raw link: GitHub raw and Dropbox links work,
         and share-page links are converted automatically. <b>Sync now replaces the whole list</b>
-        with the file's contents.
+        with the file's contents. If the file sits behind HTTP Basic Auth, click the lock icon and
+        enter the credentials once - every computer that pastes the same URL still needs its own
+        username and password, saved with <b>Sync now</b> or by clicking out of the field.
       </p>
     </header>
 

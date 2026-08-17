@@ -23,6 +23,8 @@ const DEFAULTS = {
   debug: false,
   remoteUrl: '',
   remoteAuto: true,
+  remoteUser: '',
+  remotePass: '',
 };
 
 const TOGGLES = [
@@ -189,7 +191,8 @@ chrome.storage.sync.get(DEFAULTS, (cfg) => {
   if (cfg.remoteUrl && cfg.remoteAuto !== false) {
     remoteLocalStore().get({ remoteLastFetch: 0 }, (l) => {
       if (Date.now() - (l.remoteLastFetch || 0) <= REMOTE_STALE_MS) return;
-      applyRemoteList(cfg.remoteUrl)
+      const auth = cfg.remoteUser ? { user: cfg.remoteUser, pass: cfg.remotePass || '' } : null;
+      applyRemoteList(cfg.remoteUrl, auth)
         .then(() => {
           setStatus('list refreshed from shared file', 'ok');
           setTimeout(() => setStatus(''), 3000);

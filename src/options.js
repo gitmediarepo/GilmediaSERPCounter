@@ -382,15 +382,16 @@ function normalizeRemoteUrl(raw) {
 }
 
 /* Fetch, validate, back up, replace - the pipeline itself lives in parse.js
- * (applyRemoteList), shared verbatim with the popup's auto-refresh. */
-function syncFromRemote(url, { quiet } = {}) {
+ * (applyRemoteList), shared verbatim with the popup's auto-refresh. auth is
+ * optional { user, pass } for a file behind HTTP Basic Auth. */
+function syncFromRemote(url, { quiet, auth } = {}) {
   if (!url) {
     setRemoteStatus('paste a URL first', 'bad');
     return;
   }
   if (!quiet) setRemoteStatus('fetching...');
 
-  applyRemoteList(url)
+  applyRemoteList(url, auth)
     .then(({ text, targets, skipped }) => {
       lines = parseLines(text);
       $('text').value = text;
@@ -406,25 +407,59 @@ function syncFromRemote(url, { quiet } = {}) {
 
 const remoteUrlEl = $('remoteUrl');
 const remoteAutoEl = $('remoteAuto');
+const remoteAuthToggleEl = $('remoteAuthToggle');
+const remoteAuthRowEl = $('remoteAuthRow');
+const remoteUserEl = $('remoteUser');
+const remotePassEl = $('remotePass');
+
+function currentAuth() {
+  const user = (remoteUserEl && remoteUserEl.value.trim()) || '';
+  return user ? { user, pass: (remotePassEl && remotePassEl.value) || '' } : null;
+}
 
 function saveRemoteSettings() {
   const url = normalizeRemoteUrl(remoteUrlEl.value);
   if (url && url !== remoteUrlEl.value.trim()) remoteUrlEl.value = url;
-  chrome.storage.sync.set({ remoteUrl: url, remoteAuto: remoteAutoEl.checked });
+  chrome.storage.sync.set({
+    remoteUrl: url,
+    remoteAuto: remoteAutoEl.checked,
+    remoteUser: (remoteUserEl && remoteUserEl.value.trim()) || '',
+    remotePass: (remotePassEl && remotePassEl.value) || '',
+  });
   return url;
 }
 
 if (remoteUrlEl && remoteAutoEl) {
-  $('remoteSync').addEventListener('click', () => syncFromRemote(saveRemoteSettings()));
+  $('remoteSync').addEventListener('click', () => syncFromRemote(saveRemoteSettings(), { auth: currentAuth() }));
   remoteUrlEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') syncFromRemote(saveRemoteSettings());
+    if (e.key === 'Enter') syncFromRemote(saveRemoteSettings(), { auth: currentAuth() });
   });
   remoteUrlEl.addEventListener('blur', saveRemoteSettings);
   remoteAutoEl.addEventListener('change', saveRemoteSettings);
 
-  chrome.storage.sync.get({ remoteUrl: '', remoteAuto: true }, (cfg) => {
+  /* The auth fields stay collapsed unless the file actually needs them, so the
+   * common case (a public file) shows nothing extra. */
+  if (remoteAuthToggleEl && remoteAuthRowEl) {
+    remoteAuthToggleEl.addEventListener('click', () => {
+      const open = remoteAuthRowEl.hidden;
+      remoteAuthRowEl.hidden = !open;
+      remoteAuthToggleEl.classList.toggle('on', open);
+    });
+    remoteUserEl.addEventListener('blur', saveRemoteSettings);
+    remotePassEl.addEventListener('blur', saveRemoteSettings);
+  }
+
+  chrome.storage.sync.get({ remoteUrl: '', remoteAuto: true, remoteUser: '', remotePass: '' }, (cfg) => {
     remoteUrlEl.value = cfg.remoteUrl || '';
     remoteAutoEl.checked = cfg.remoteAuto !== false;
+    if (remoteUserEl) remoteUserEl.value = cfg.remoteUser || '';
+    if (remotePassEl) remotePassEl.value = cfg.remotePass || '';
+    if (cfg.remoteUser && remoteAuthRowEl && remoteAuthToggleEl) {
+      remoteAuthRowEl.hidden = false;
+      remoteAuthToggleEl.classList.add('on');
+    }
+
+    const auth = cfg.remoteUser ? { user: cfg.remoteUser, pass: cfg.remotePass || '' } : null;
 
     /* Auto-refresh: quietly pull the file when this page opens if the local
      * copy is more than 12 hours old. Per machine, so a fresh computer with a
@@ -432,7 +467,7 @@ if (remoteUrlEl && remoteAutoEl) {
     if (cfg.remoteUrl && cfg.remoteAuto !== false) {
       remoteLocalStore().get({ remoteLastFetch: 0 }, (l) => {
         if (Date.now() - (l.remoteLastFetch || 0) > REMOTE_STALE_MS) {
-          syncFromRemote(cfg.remoteUrl, { quiet: true });
+          syncFromRemote(cfg.remoteUrl, { quiet: true, auth });
         }
       });
     }

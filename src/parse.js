@@ -199,10 +199,18 @@ function remoteLocalStore() {
 }
 
 /* Fetch and validate the file. Resolves { text, targets, skipped }; rejects
- * with an Error whose message is fit to show the user. */
-function fetchRemoteList(url) {
-  return fetch(url, { cache: 'no-store' })
+ * with an Error whose message is fit to show the user. auth is optional
+ * { user, pass } for a file behind HTTP Basic Auth - sent as an Authorization
+ * header rather than embedded in the URL, so it never ends up in browser
+ * history or server access logs. */
+function fetchRemoteList(url, auth) {
+  const headers = {};
+  if (auth && auth.user) headers.Authorization = 'Basic ' + btoa(`${auth.user}:${auth.pass || ''}`);
+  return fetch(url, { cache: 'no-store', headers })
     .then((res) => {
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(auth && auth.user ? 'wrong username or password' : 'this file needs a username and password');
+      }
       if (!res.ok) throw new Error(`the server said ${res.status}`);
       return res.text();
     })
@@ -225,9 +233,10 @@ function fetchRemoteList(url) {
 
 /* Replace the whole list with the remote file. The list it overwrites is
  * backed up to chrome.storage.local first, so one wrong URL is not a
- * permanent loss - restoreRemoteBackup() brings it back. */
-function applyRemoteList(url) {
-  return fetchRemoteList(url).then(
+ * permanent loss - restoreRemoteBackup() brings it back. auth is optional,
+ * see fetchRemoteList. */
+function applyRemoteList(url, auth) {
+  return fetchRemoteList(url, auth).then(
     ({ text, targets, skipped }) =>
       new Promise((resolve, reject) => {
         chrome.storage.sync.get({ domainsText: '', targets: [] }, (prev) => {
