@@ -1,0 +1,30 @@
+#!/bin/sh
+# Refuse to push if a real Gilmedia client domain is anywhere in the tree.
+#
+# This exists because it already happened: a test fixture used a live client
+# domain and reached the public repo, and unpicking it meant rewriting history
+# and force-pushing every tag. Fixtures use .example hosts. Nothing else.
+#
+# The list lives outside the repo on purpose - it is the client list, and it
+# must never be committed here. No list on this machine means no check, which
+# is the right failure mode for a stranger who cloned this.
+
+LIST="../clients/gilmedia-seo-clients.txt"
+[ -f "$LIST" ] || exit 0
+
+DOMAINS=$(awk -F'|' '!/^#/ && NF {gsub(/^[ \t]+|[ \t]+$/,"",$1);
+  if ($1 != "" && $1 != "gilmedia.com") print $1}' "$LIST" | sort -u)
+[ -n "$DOMAINS" ] || exit 0
+
+PATTERN=$(printf '%s\n' "$DOMAINS" | sed 's/\./\./g' | paste -sd'|' -)
+HITS=$(git grep -IniE "$PATTERN" -- . ':(exclude).githooks' 2>/dev/null)
+
+if [ -n "$HITS" ]; then
+  echo "PUSH BLOCKED: a real client domain is in the tree." >&2
+  echo >&2
+  echo "$HITS" >&2
+  echo >&2
+  echo "Use a .example host in fixtures. To override: git push --no-verify" >&2
+  exit 1
+fi
+exit 0
