@@ -649,6 +649,47 @@
 
   const isLocalish = (kind) => kind === 'local' || kind === 'lsa' || kind === 'maps';
 
+  /* A link can legitimately point at your site without your hostname being the
+   * link's OWN hostname: a redirect wrapper carries the destination in a query
+   * parameter, and Google's AMP viewer serves your page from
+   * <you>.cdn.ampproject.org with the real host sitting in the path. Both are
+   * resolved here, and both are compared by HOSTNAME.
+   *
+   * What this deliberately does NOT do is search the whole URL for your domain
+   * as a substring, which is what the code here used to do. A Trustpilot review
+   * at ca.trustpilot.com/review/yoursite.com, a Yelp profile, a BBB listing, a
+   * whois lookup - every one of them carries your domain in its PATH, and every
+   * one of them was being reported as your own result ranking at that position.
+   * Your domain inside somebody else's URL is a reference to you, never a
+   * ranking of yours; it is picked up further down as a mention instead. */
+  function proxiedHostsOf(url) {
+    const out = [];
+    let u;
+    try {
+      u = new URL(url, location.href);
+    } catch {
+      return out;
+    }
+
+    // Redirect wrappers: ?q=, ?url=, ?u=, ?target= and the rest.
+    for (const value of u.searchParams.values()) {
+      if (!/^https?:\/\//i.test(value)) continue;
+      const h = hostOf(value);
+      if (h) out.push(h);
+    }
+
+    // Google's AMP viewer: /c/s/<real host>/<path> on *.cdn.ampproject.org.
+    if (/(^|\.)cdn\.ampproject\.org$/i.test(u.hostname)) {
+      const seg = u.pathname.split('/').filter(Boolean);
+      if (seg[0] === 'c') {
+        const host = seg[1] === 's' ? seg[2] : seg[1];
+        if (host && host.includes('.')) out.push(cleanHost(host));
+      }
+    }
+
+    return out;
+  }
+
   /* Domains are the reliable signal for organic and ads. Business names are the
    * only signal in the local pack, LSA and Maps, where Google prints a name and
    * no URL. Matching a name inside an organic title is allowed but kept to
@@ -664,6 +705,7 @@
     const localish = isLocalish(kind);
     let blockText = null;
     let nameHit = null;
+    let proxied = null;
 
     for (const t of targets) {
       if (t.domain) {
@@ -671,8 +713,11 @@
         // Some results render the site in a <cite> while the href is wrapped.
         if (entry.cite && hostMatches(cleanHost(entry.cite), t.domain))
           return { target: t, via: 'domain' };
-        if (entry.url && entry.url.toLowerCase().includes(t.domain))
-          return { target: t, via: 'domain' };
+        if (entry.url) {
+          if (proxied === null) proxied = proxiedHostsOf(entry.url);
+          if (proxied.some((h) => hostMatches(h, t.domain)))
+            return { target: t, via: 'domain' };
+        }
       }
 
       if (!nameHit && t.name && (localish || t.name.length >= 5)) {
@@ -684,6 +729,16 @@
           if (blockText === null) blockText = richTextOf(entry.block).toLowerCase();
           if (blockText.includes(t.name)) nameHit = { target: t, via: 'name' };
         }
+      }
+
+      /* Your domain printed inside somebody else's URL: the Trustpilot review,
+       * the Yelp profile, the BBB listing. The host is already known not to be
+       * yours - a real domain match returns above - so this is a reference to
+       * you on their page. Worth seeing, wrong to call it your ranking, so it
+       * goes in the mentions block. This also covers anyone tracking a bare
+       * domain with no business name, who would otherwise see nothing here. */
+      if (!nameHit && t.domain && entry.url && entry.url.toLowerCase().includes(t.domain)) {
+        nameHit = { target: t, via: 'reference' };
       }
     }
 
@@ -697,7 +752,8 @@
   /* In the local pack, LSA and Maps a name match is the only signal there is,
    * and it is your own listing, so it counts as the real thing. In organic and
    * ads it means your name showed up on a page that is not yours. */
-  const isMention = (via, kind) => via === 'name' && !isLocalish(kind);
+  const isMention = (via, kind) =>
+    via === 'reference' || (via === 'name' && !isLocalish(kind));
 
   // ---------------------------------------------------------------- painting
 
