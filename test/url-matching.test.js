@@ -3,9 +3,8 @@
  * The bug this pins: matchTarget used to accept a result as YOURS if your
  * domain appeared anywhere in the result's URL as a plain substring. A
  * Trustpilot review at ca.trustpilot.com/review/yoursite.com therefore
- * reported as your own organic ranking - reported live for
- * "appliance repair city", where a Trustpilot page at position 11 was
- * counted as the client's own result.
+ * reported as your own organic ranking - found live on a real search, where a
+ * Trustpilot page at position 11 was counted as the tracked site's own result.
  *
  * The rule now: a result is YOURS when the HOSTNAME is yours, including via a
  * redirect wrapper or Google's AMP viewer. Your domain sitting in somebody
