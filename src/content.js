@@ -23,6 +23,24 @@
 
   // ---------------------------------------------------------------- settings
 
+  /* Base colour per surface, plus bubble shape and type. Overridable from the
+   * settings page (gear icon in the popup); shipped as sane Gilmedia-brand
+   * defaults so a machine that never opens settings looks exactly as before. */
+  const DEFAULT_STYLE = {
+    colors: {
+      organic: '#f37333',
+      ad: '#7a5cff',
+      lsa: '#4a86e8',
+      local: '#2b7fd4',
+      ai: '#9457f0',
+      hit: '#627d47',
+      mention: '#d4832b',
+    },
+    bubble: 'circle', // circle | rounded | square | pill
+    fontSize: 12,
+    fontFamily: 'Mulish, -apple-system, Segoe UI, Arial, sans-serif',
+  };
+
   const DEFAULTS = {
     targets: [], // [{ domain: 'example.com', name: 'Example Co' }]
     enabled: true, // master switch, off means touch nothing at all
@@ -31,13 +49,16 @@
     showAds: true,
     showLocal: true,
     showLsa: true,
+    showAi: true, // AI Overview / AI Mode citations
     showPanel: true,
     showPaginationTop: true, // clone the page-number nav above the first result
     debug: false,
+    style: DEFAULT_STYLE,
   };
 
   let cfg = { ...DEFAULTS };
   let lastHosts = []; // every domain seen in the last scan, for the "why?" link
+  let lastMatchState = null; // did the previous render have anything to show?
 
   /* Running log for one search term.
    *
@@ -76,7 +97,7 @@
             .filter((h) => h && Number.isFinite(h.rank))
             .map((h) => ({
               id: String(h.id || '').slice(0, 60),
-              kind: /^(organic|ad|lsa|local|maps)$/.test(h.kind) ? h.kind : 'organic',
+              kind: /^(organic|ad|lsa|local|maps|ai)$/.test(h.kind) ? h.kind : 'organic',
               rank: h.rank,
               page: Number.isFinite(h.page) ? h.page : 1,
               label: String(h.label || '').slice(0, 40),
@@ -502,6 +523,94 @@
     );
   }
 
+  /* AI Overview (the answer box on a normal SERP) and AI Mode (the dedicated
+   * chat-style tab/page, ?udm=50) both cite real pages with real links, so
+   * they are matched the same way organic results are: by domain in the href.
+   * Google has not published markup for either, and both are newer and less
+   * stable than the rest of this file, so detection is best-effort with three
+   * fallbacks - a handful of known attribute hints, a heading match, and
+   * "the whole page is AI Mode" - and reports zero rather than guessing wrong
+   * when none of them land. Re-check with __gilSerpDiag() if a page turns up
+   * an AI panel that this misses. */
+  const AI_HEADING = /^(ai overview|generative ai overview|ai-powered overview|ai mode)\b/i;
+
+  const AI_HINT_SEL = [
+    '#m-x-content',
+    'div[data-attrid*="AIOverview" i]',
+    'div[data-attrid*="GenerativeContent" i]',
+    '[data-subtree="aif"]',
+  ].join(',');
+
+  function isAiModePage() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('udm') === '50') return true;
+    if (/\/search\/ai(\/|$)/.test(location.pathname)) return true;
+    return !!document.querySelector('[data-udm="50"], a[href*="udm=50"][aria-current]');
+  }
+
+  function findAiModule() {
+    const hinted = document.querySelector(AI_HINT_SEL);
+    if (hinted && isSaneModule(hinted)) return hinted;
+
+    for (const h of document.querySelectorAll('h1, h2, h3, [role="heading"]')) {
+      if (!AI_HEADING.test(textOf(h))) continue;
+      const mod = h.closest('div[data-hveid], div[jscontroller], section, div.MjjYud') || h.parentElement;
+      if (mod && isSaneModule(mod)) return mod;
+    }
+
+    /* A dedicated AI Mode page (?udm=50) is AI top to bottom, so the results
+     * root IS the module. isSaneModule is deliberately NOT applied here: it
+     * rejects #rso/#search/#center_col by name, a guard that exists to stop
+     * the LOCAL pack walk from climbing up and swallowing the organic results.
+     * On this page there are no organic results to protect, so that guard
+     * would only ever produce a false negative. */
+    if (isAiModePage()) {
+      const root = resultsRoot();
+      if (root && root !== document.body) return root;
+    }
+
+    return null;
+  }
+
+  /* Every outbound link inside the module counts as one citation, one row per
+   * nearest block so two links into the same card do not double count. */
+  function aiResults(module) {
+    if (!module) return [];
+    const seenBlocks = new Set();
+    const seenUrls = new Set();
+    const out = [];
+    for (const a of module.querySelectorAll('a[href]')) {
+      if (!isHttpLink(a)) continue;
+
+      /* The same source cited twice in one answer is one citation, not two. */
+      const urlKey = (a.href || '').split('#')[0];
+      if (seenUrls.has(urlKey)) continue;
+
+      /* Nearest citation card, but it MUST be strictly inside the module. An
+       * AI answer often puts several links in one prose paragraph with no
+       * per-link wrapper, and closest() then walks all the way up to the
+       * module itself - which collapsed every citation into a single row and
+       * numbered only the first. When there is no card of its own, the link
+       * IS the row. */
+      let block = a.closest('div[data-hveid], div[jsname], div[role="listitem"], li');
+      if (!block || block === module || !module.contains(block) || seenBlocks.has(block)) {
+        block = a;
+      }
+      if (seenBlocks.has(block)) continue;
+
+      seenBlocks.add(block);
+      seenUrls.add(urlKey);
+      out.push({
+        block,
+        host: hostOf(a.href),
+        title: textOf(a) || textOf(block).slice(0, 70),
+        url: a.href,
+        cite: textOf(block.querySelector ? block.querySelector('cite') : null),
+      });
+    }
+    return inDomOrder(out);
+  }
+
   function mapsResults() {
     const feed = document.querySelector('div[role="feed"]');
     if (!feed) return [];
@@ -599,14 +708,42 @@
     for (const el of document.querySelectorAll(`.${NS}-block`)) el.classList.remove(`${NS}-block`);
   }
 
-  const KIND_TAG = { ad: 'Ad', lsa: 'LSA', local: 'Map', maps: 'Map' };
+  const KIND_TAG = { ad: 'Ad', lsa: 'LSA', local: 'Map', maps: 'Map', ai: 'AI' };
+
+  /* Results per page, from the URL's own num= param. Google restarts numbering
+   * every page, so this is how a true rank like 31 gets decomposed back into
+   * "page 4, position 1" - the page-relative number searchers actually see. */
+  function perPage() {
+    return parseInt(new URLSearchParams(location.search).get('num') || '10', 10) || 10;
+  }
+
+  function pagePositionOf(rank) {
+    const per = perPage();
+    return { page: Math.floor((rank - 1) / per) + 1, pos: ((rank - 1) % per) + 1 };
+  }
 
   function paint(entries, { offset = 0, kind, targets = [] }) {
     const hits = [];
     entries.forEach((entry, i) => {
       const rank = offset + i + 1;
-      const tag = KIND_TAG[kind] || '';
-      const label = tag ? `${tag} ${rank}` : String(rank);
+      const kindTag = KIND_TAG[kind] || '';
+
+      /* Organic is the one surface where the badge number is a TRUE rank that
+       * spans pages (31, not "1 on page 4"), so it is the one surface where
+       * spelling out the page and page-relative position is actually new
+       * information rather than a restatement of the number already shown. */
+      let label, cornerTag, posText;
+      if (kind === 'organic') {
+        const { page, pos } = pagePositionOf(rank);
+        cornerTag = `p${page}.${pos}`;
+        label = `${rank} (${cornerTag})`;
+        posText = label;
+      } else {
+        cornerTag = kindTag;
+        label = kindTag ? `${kindTag} ${rank}` : String(rank);
+        posText = String(rank);
+      }
+
       const match = matchTarget(entry, targets, kind);
       const hit = match && match.target;
       const mention = match ? isMention(match.via, kind) : false;
@@ -621,15 +758,15 @@
         (rank > 99 ? ` ${NS}-badge--wide` : '');
       badge.textContent = String(rank);
       badge.title = !show
-        ? `${tag ? tag + ' ' : 'Organic '}position ${rank}`
+        ? `${kindTag ? kindTag + ' ' : 'Organic '}position ${posText}`
         : mention
           ? `${hit.label} mentioned on ${entry.host || 'this result'} at ${label}`
           : `${hit.label} found at ${label}`;
 
-      if (tag) {
+      if (cornerTag) {
         const t = document.createElement('span');
         t.className = `${NS}-tag`;
-        t.textContent = tag;
+        t.textContent = cornerTag;
         badge.appendChild(t);
       }
 
@@ -669,9 +806,9 @@
       document.body.appendChild(panel);
     }
 
-    const collapsed = localStorage.getItem(`${NS}-collapsed`) === '1';
     const lines = [];
     const loaded = cfg.targets.length;
+    let hasMatches = false;
 
     if (!loaded) {
       lines.push(
@@ -707,6 +844,8 @@
             )
         : [];
 
+      hasMatches = entries.length > 0 || mentions.length > 0;
+
       const pages = run && run.pages.length ? run.pages : [currentPage()];
       const scope = pages.length > 1 ? `across pages ${pages.join(', ')}` : `on page ${pages[0]}`;
 
@@ -720,7 +859,7 @@
 
       function rowFor(e, kindClass) {
         // Order one entry's own positions organic, local, LSA, then ads.
-        const order = { organic: 0, local: 1, maps: 1, lsa: 2, ad: 3 };
+        const order = { organic: 0, ai: 1, local: 2, maps: 2, lsa: 3, ad: 4 };
         const chips = e.hits
           .slice()
           .sort((a, b) => order[a.kind] - order[b.kind] || a.page - b.page || a.rank - b.rank)
@@ -769,6 +908,19 @@
         }
       }
     }
+
+    /* Auto-collapse when a search turns up none of your domains, auto-expand
+     * the moment one does, so the panel is quiet on searches that don't matter
+     * and visible on the ones that do. Only re-decided when the match state
+     * actually flips: within one state, a manual click on the +/- button still
+     * sticks (it re-renders through here too, but with lastMatchState already
+     * equal to hasMatches, so this block leaves its choice alone). */
+    let collapsed = localStorage.getItem(`${NS}-collapsed`) === '1';
+    if (loaded && hasMatches !== lastMatchState) {
+      collapsed = !hasMatches;
+      localStorage.setItem(`${NS}-collapsed`, collapsed ? '1' : '0');
+    }
+    if (loaded) lastMatchState = hasMatches;
 
     const counts = sections
       .filter((s) => s.count > 0)
@@ -886,8 +1038,16 @@
       // exclude organic results; only the claimed rows themselves do that.
       const lsaMod = findLsaModule();
       const localMod = findLocalModule(lsaMod);
+      const aiMod = cfg.showAi ? findAiModule() : null;
       const claimedRows = [];
 
+      if (cfg.showAi) {
+        const ai = aiResults(aiMod);
+        noteHosts(ai);
+        hits.push(...paint(ai, { kind: 'ai', targets }));
+        claimedRows.push(...ai.map((r) => r.block));
+        sections.push({ key: 'ai', label: 'AI Overview', count: ai.length, offset: 0 });
+      }
       if (cfg.showLsa) {
         const lsa = lsaResults(lsaMod);
         noteHosts(lsa);
@@ -919,7 +1079,7 @@
       }
 
       if (cfg.debug) {
-        console.log(`[${NS}] modules`, { lsa: lsaMod, local: localMod });
+        console.log(`[${NS}] modules`, { lsa: lsaMod, local: localMod, ai: aiMod });
       }
     }
 
@@ -1073,21 +1233,24 @@
     };
     const lsaMod = findLsaModule();
     const localMod = findLocalModule(lsaMod);
+    const aiMod = findAiModule();
     const desc = (el) =>
       el ? `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}.${(el.className || '').toString().split(' ').slice(0, 3).join('.')}` : null;
     const report = {
       url: location.href,
       offset: pageOffset(),
-      modules: { lsa: desc(lsaMod), local: desc(localMod) },
+      modules: { lsa: desc(lsaMod), local: desc(localMod), ai: desc(aiMod) },
       localHeading: localMod
         ? textOf(localMod.querySelector('h2, h3, [role="heading"]')).slice(0, 60)
         : null,
+      isAiModePage: isAiModePage(),
       counts: {
         organic: organicResults([lsaMod, localMod].filter(Boolean)).length,
         ads: adResults().length,
         local: localPackResults(localMod).length,
         lsa: lsaResults(lsaMod).length,
         maps: mapsResults().length,
+        ai: aiResults(aiMod).length,
       },
       probes: {
         'data-cid': probe('[data-cid]'),
@@ -1107,8 +1270,6 @@
     console.log(JSON.stringify(report, null, 2));
     return report;
   };
-
-  // ------------------------------------------------------------------ boot
 
   function watch() {
     // Google appends results on scroll and rewrites the Maps feed as you pan,
@@ -1138,8 +1299,62 @@
     }, 800);
   }
 
+  // --------------------------------------------------------------- styling
+
+  function clamp255(n) {
+    return Math.max(0, Math.min(255, n));
+  }
+
+  /* Lighten (positive) or darken (negative) a #rrggbb by a 0-1 fraction toward
+   * white or black. Used to turn the one colour someone picks in settings into
+   * the same three-stop gradient look every badge already has, rather than
+   * flattening the badges to a single flat fill. */
+  function shade(hex, amount) {
+    const n = parseInt(hex.slice(1), 16);
+    let r = (n >> 16) & 255,
+      g = (n >> 8) & 255,
+      b = n & 255;
+    const toward = amount < 0 ? 0 : 255;
+    const p = Math.abs(amount);
+    r = clamp255(Math.round((toward - r) * p) + r);
+    g = clamp255(Math.round((toward - g) * p) + g);
+    b = clamp255(Math.round((toward - b) * p) + b);
+    return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+  }
+
+  const HEX_RE = /^#[0-9a-f]{6}$/i;
+
+  /* Push the user's chosen colours, bubble shape and font onto :root as CSS
+   * custom properties. serp.css reads these with the Gilmedia defaults as the
+   * fallback, so a page that never touched settings renders identically to
+   * before this existed. */
+  function applyStyle(style) {
+    const s = { ...DEFAULT_STYLE, ...(style || {}) };
+    const colors = { ...DEFAULT_STYLE.colors, ...(s.colors || {}) };
+    const root = document.documentElement;
+
+    for (const key of Object.keys(DEFAULT_STYLE.colors)) {
+      const hex = HEX_RE.test(colors[key]) ? colors[key] : DEFAULT_STYLE.colors[key];
+      root.style.setProperty(`--gil-c-${key}-1`, shade(hex, 0.28));
+      root.style.setProperty(`--gil-c-${key}-2`, hex);
+      root.style.setProperty(`--gil-c-${key}-3`, shade(hex, -0.22));
+    }
+
+    const fontSize = Number(s.fontSize);
+    root.style.setProperty('--gil-font-size', `${Number.isFinite(fontSize) && fontSize > 0 ? fontSize : DEFAULT_STYLE.fontSize}px`);
+    root.style.setProperty('--gil-font-family', s.fontFamily || DEFAULT_STYLE.fontFamily);
+
+    for (const v of ['circle', 'rounded', 'square', 'pill']) {
+      root.classList.remove(`${NS}-variant-${v}`);
+    }
+    root.classList.add(`${NS}-variant-${['circle', 'rounded', 'square', 'pill'].includes(s.bubble) ? s.bubble : 'circle'}`);
+  }
+
+  // ------------------------------------------------------------------ boot
+
   chrome.storage.sync.get(DEFAULTS, (stored) => {
     cfg = { ...DEFAULTS, ...stored };
+    applyStyle(cfg.style);
     scan();
     watch();
   });
@@ -1147,6 +1362,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'sync') return;
     for (const [k, v] of Object.entries(changes)) cfg[k] = v.newValue;
+    if (changes.style) applyStyle(cfg.style);
     scan();
   });
 })();

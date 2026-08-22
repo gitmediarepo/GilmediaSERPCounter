@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Gilmedia SERP Counter",
-  "version": "2.1.0",
-  "description": "Numbers Google results by true rank across pages and highlights your whole domain list in organic, Ads, local pack and Maps.",
+  "version": "2.2.0",
+  "description": "Numbers Google results by true rank across pages and highlights your domain list in organic, Ads, local pack, Maps and AI Overview.",
   "permissions": ["storage"],
   "content_scripts": [
     {

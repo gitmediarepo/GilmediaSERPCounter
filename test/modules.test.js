@@ -115,7 +115,7 @@ check('tracked domain marked in organic too', doc.querySelectorAll('#rso .gil-se
 const panel = doc.getElementById('gil-serp-panel');
 const labels = [...panel.querySelectorAll('.gil-serp-pos')].map((p) => p.textContent);
 check('panel labels the local hit Map 1', labels.includes('Map 1'), true);
-check('panel labels the organic hit 2', labels.includes('2'), true);
+check('panel labels the organic hit 2 (p1.2)', labels.includes('2 (p1.2)'), true);
 
 /* --- the page 2-3-4 blanking bug -------------------------------------------
  * A later results page has no Businesses block, but often carries a stray place

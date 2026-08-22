@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>SERP Counter - Settings</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #131313;
+        --panel: #191919;
+        --line: #292929;
+        --line-soft: #222;
+        --text: #f2f2f2;
+        --soft: #8a8a8a;
+        --faint: #666;
+        --orange: #f37333;
+        --green: #a9c489;
+        --red: #e2a08a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 400 14px/1.5 Mulish, -apple-system, Segoe UI, Arial, sans-serif;
+      }
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+      header {
+        border-bottom: 1px solid var(--line);
+        background: var(--panel);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+      .head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 0;
+      }
+      h1 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        letter-spacing: 0.4px;
+        color: var(--orange);
+      }
+      .sub {
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .status {
+        margin-left: auto;
+        font-size: 12px;
+        color: var(--soft);
+      }
+      .status.ok {
+        color: var(--green);
+      }
+      main {
+        padding: 20px 0 48px;
+      }
+      section {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px 18px;
+        margin-bottom: 16px;
+        background: var(--panel);
+      }
+      h2 {
+        margin: 0 0 4px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: var(--soft);
+      }
+      .hint {
+        margin: 0 0 14px;
+        font-size: 12px;
+        color: var(--faint);
+      }
+      .colors {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px 16px;
+      }
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 0;
+      }
+      .color-row input[type='color'] {
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        border: 1px solid #3a3a3a;
+        border-radius: 6px;
+        background: none;
+        cursor: pointer;
+        flex: none;
+      }
+      .color-row label {
+        font-size: 13px;
+      }
+      .color-row .swatch-note {
+        display: block;
+        font-size: 11px;
+        color: var(--faint);
+      }
+      .variants {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .variant {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border: 1px solid #333;
+        border-radius: 8px;
+        background: #1c1c1c;
+        cursor: pointer;
+        user-select: none;
+        min-width: 84px;
+      }
+      .variant:hover {
+        border-color: #4a4a4a;
+      }
+      .variant.on {
+        border-color: var(--orange);
+        background: #241a10;
+      }
+      .variant .demo {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, #ff8b52 0%, #f37333 55%, #e05f1d 100%);
+        color: #fff;
+        font: 700 12px/1 Mulish, Arial, sans-serif;
+      }
+      .variant[data-v='circle'] .demo {
+        border-radius: 50%;
+      }
+      .variant[data-v='rounded'] .demo {
+        border-radius: 10px;
+      }
+      .variant[data-v='square'] .demo {
+        border-radius: 4px;
+      }
+      .variant[data-v='pill'] .demo {
+        border-radius: 15px;
+        width: auto;
+        min-width: 30px;
+        padding: 0 10px;
+      }
+      .variant span.lbl {
+        font-size: 11.5px;
+        color: var(--soft);
+      }
+      .type-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: flex-end;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .field label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--soft);
+      }
+      select,
+      input[type='number'] {
+        border: 1px solid #333;
+        background: #1c1c1c;
+        color: var(--text);
+        border-radius: 6px;
+        padding: 7px 10px;
+        font: 400 13px/1.4 inherit;
+        min-width: 180px;
+      }
+      input[type='number'] {
+        min-width: 90px;
+      }
+      input[type='range'] {
+        accent-color: var(--orange);
+        width: 180px;
+      }
+      select:focus,
+      input:focus {
+        outline: none;
+        border-color: var(--orange);
+      }
+      .preview {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        padding: 18px;
+        border-radius: 8px;
+        background: #101010;
+        border: 1px solid var(--line-soft);
+      }
+      .preview-badge {
+        position: relative;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .preview-tag {
+        position: absolute;
+        left: 50%;
+        bottom: -10px;
+        transform: translateX(-50%);
+        padding: 1px 4px;
+        border-radius: 4px;
+        background: #2b2b2b;
+        color: #fff;
+        font: 700 7px/1.4 Mulish, Arial, sans-serif;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+      button {
+        border: 1px solid #3a3a3a;
+        background: #232323;
+        color: #ddd;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font: 700 12px/1.4 inherit;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #2d2d2d;
+        border-color: #4a4a4a;
+      }
+      button.danger {
+        color: #c99;
+      }
+      button.danger:hover {
+        border-color: #a33;
+        color: #f4a0a0;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 18px 0 40px;
+        font-size: 12px;
+        color: var(--faint);
+        display: flex;
+        gap: 14px;
+      }
+      footer a {
+        color: var(--soft);
+        text-decoration: none;
+        border-bottom: 1px solid #333;
+      }
+      footer a:hover {
+        color: var(--orange);
+        border-bottom-color: var(--orange);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap head">
+        <h1>SERP COUNTER</h1>
+        <span class="sub">Settings</span>
+        <span class="status" id="status"></span>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section>
+        <h2>Colours</h2>
+        <p class="hint">One colour per surface. Each badge keeps its gradient look, built from the shade you pick.</p>
+        <div class="colors">
+          <div class="color-row">
+            <input type="color" id="c-organic" />
+            <div><label for="c-organic">SERP (organic)</label><span class="swatch-note">Regular results</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-ad" />
+            <div><label for="c-ad">Ads</label><span class="swatch-note">Paid search</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-lsa" />
+            <div><label for="c-lsa">LSA</label><span class="swatch-note">Local Services Ads</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-local" />
+            <div><label for="c-local">GBP / Local pack</label><span class="swatch-note">Local pack &amp; Maps</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-ai" />
+            <div><label for="c-ai">AI pack</label><span class="swatch-note">AI Overview / AI Mode</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-hit" />
+            <div><label for="c-hit">Hit</label><span class="swatch-note">Your domain found</span></div>
+          </div>
+          <div class="color-row">
+            <input type="color" id="c-mention" />
+            <div><label for="c-mention">Mention</label><span class="swatch-note">Your name, someone else's site</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Bubble style</h2>
+        <p class="hint">The shape of the number badge on the results page.</p>
+        <div class="variants" id="variants">
+          <div class="variant" data-v="circle"><span class="demo">31</span><span class="lbl">Circle</span></div>
+          <div class="variant" data-v="rounded"><span class="demo">31</span><span class="lbl">Rounded</span></div>
+          <div class="variant" data-v="square"><span class="demo">31</span><span class="lbl">Square</span></div>
+          <div class="variant" data-v="pill"><span class="demo">31</span><span class="lbl">Pill</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Typography</h2>
+        <p class="hint">Font used on the number badges and their page/type tag.</p>
+        <div class="type-row">
+          <div class="field">
+            <label for="fontFamily">Font</label>
+            <select id="fontFamily">
+              <option value="Mulish, -apple-system, Segoe UI, Arial, sans-serif">Mulish (default)</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="Roboto, Arial, sans-serif">Roboto</option>
+              <option value="Verdana, Geneva, sans-serif">Verdana</option>
+              <option value="'Courier New', Courier, monospace">Courier New</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="fontSize">Size (<span id="fontSizeOut">12</span>px)</label>
+            <input type="range" id="fontSize" min="9" max="20" step="1" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Preview</h2>
+        <div class="preview">
+          <span class="preview-badge" id="previewOrganic"><span id="previewOrganicNum">31</span><span class="preview-tag" id="previewOrganicTag">p4.1</span></span>
+          <span class="preview-badge" id="previewAi"><span id="previewAiNum">2</span><span class="preview-tag" id="previewAiTag">AI</span></span>
+          <span class="preview-badge" id="previewHit"><span id="previewHitNum">7</span></span>
+        </div>
+      </section>
+
+      <button class="danger" id="reset">Reset to defaults</button>
+    </main>
+
+    <footer class="wrap">
+      <span>
+        Built by
+        <a href="https://www.gilmedia.com" target="_blank" rel="noopener noreferrer">Gilmedia</a>
+      </span>
+      <a href="options.html" target="_blank" rel="noopener noreferrer">Domain list</a>
+      <a href="help.html" target="_blank" rel="noopener noreferrer">Help</a>
+    </footer>
+
+    <script src="settings.js"></script>
+  </body>
+</html>

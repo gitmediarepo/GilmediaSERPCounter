@@ -93,9 +93,9 @@ check('ads counted on their own scale', nums('ad'), ['1', '2']);
 check('three local rows counted, "More places" excluded', nums('local'), ['1', '2', '3']);
 
 check(
-  'organic badges carry no type tag',
-  [...doc.querySelectorAll('.gil-serp-badge--organic .gil-serp-tag')].length,
-  0
+  'organic badges carry a page/position tag, not a type tag',
+  [...doc.querySelectorAll('.gil-serp-badge--organic .gil-serp-tag')].map((t) => t.textContent),
+  ['p3.1', 'p3.2', 'p3.3', 'p3.4', 'p3.5', 'p3.6', 'p3.7', 'p3.8', 'p3.9', 'p3.10']
 );
 check(
   'non-organic badges are tagged',

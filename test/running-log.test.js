@@ -92,8 +92,8 @@ check(
   ['starbucks.com', 'walmart.com']
 );
 check('scope now names both pages', /across pages 1, 2/.test(panelText(doc)), true);
-check('the page 1 position survived', chips(doc, 'walmart.com'), ['3']);
-check('the page 2 position is a true rank', chips(doc, 'starbucks.com'), ['13']);
+check('the page 1 position survived', chips(doc, 'walmart.com'), ['3 (p1.3)']);
+check('the page 2 position is a true rank', chips(doc, 'starbucks.com'), ['13 (p2.3)']);
 
 // --- page 3, same term, plus an ad ------------------------------------------
 doc = visit('coffee toronto', 20, 'timhortons.com', { ad: 'walmart.com' });
@@ -107,13 +107,13 @@ check('the count is cumulative', /3 of 3 domains/.test(panelText(doc)), true);
 check(
   'a domain found on two pages keeps both, and the ad chip names its page',
   chips(doc, 'walmart.com'),
-  ['3', 'Ad 1 ·p3']
+  ['3 (p1.3)', 'Ad 1 ·p3']
 );
 
 // --- revisiting a page must not duplicate ------------------------------------
 doc = visit('coffee toronto', 10, 'starbucks.com');
 check('revisiting page 2 adds no duplicate row', rowDomains(doc).length, 3);
-check('and no duplicate chip', chips(doc, 'starbucks.com'), ['13']);
+check('and no duplicate chip', chips(doc, 'starbucks.com'), ['13 (p2.3)']);
 
 // --- a new search term resets ------------------------------------------------
 doc = visit('windows installer', 0, 'timhortons.com');

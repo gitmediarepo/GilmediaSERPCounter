@@ -5,6 +5,35 @@
  * #627d47 green for a hit, with violet and blue separating paid from local.
  */
 
+/* Colour, bubble shape and type set from the settings page (gear icon in the
+   popup). Every value here is a fallback for a machine that never opened
+   settings; content.js overwrites these on :root once cfg loads. */
+:root {
+  --gil-c-organic-1: #ff8b52;
+  --gil-c-organic-2: #f37333;
+  --gil-c-organic-3: #e05f1d;
+  --gil-c-ad-1: #8f79ff;
+  --gil-c-ad-2: #7a5cff;
+  --gil-c-ad-3: #6141e6;
+  --gil-c-lsa-1: #7fb0ff;
+  --gil-c-lsa-2: #4a86e8;
+  --gil-c-lsa-3: #2f68c9;
+  --gil-c-local-1: #4fa3e8;
+  --gil-c-local-2: #2b7fd4;
+  --gil-c-local-3: #1c63ab;
+  --gil-c-ai-1: #b48cff;
+  --gil-c-ai-2: #9457f0;
+  --gil-c-ai-3: #6f34c4;
+  --gil-c-hit-1: #86a566;
+  --gil-c-hit-2: #627d47;
+  --gil-c-hit-3: #4c6337;
+  --gil-c-mention-1: #e8a24f;
+  --gil-c-mention-2: #d4832b;
+  --gil-c-mention-3: #ab631c;
+  --gil-font-size: 12px;
+  --gil-font-family: Mulish, -apple-system, Segoe UI, Arial, sans-serif;
+}
+
 .gil-serp-block {
   position: relative;
 }
@@ -23,9 +52,9 @@
   height: 30px;
   box-sizing: border-box;
   border-radius: 50%;
-  background: linear-gradient(160deg, #ff8b52 0%, #f37333 55%, #e05f1d 100%);
+  background: linear-gradient(160deg, var(--gil-c-organic-1) 0%, var(--gil-c-organic-2) 55%, var(--gil-c-organic-3) 100%);
   color: #fff;
-  font: 700 12px/1 Mulish, Arial, sans-serif;
+  font: 700 var(--gil-font-size, 12px)/1 var(--gil-font-family, Mulish, Arial, sans-serif);
   letter-spacing: 0.1px;
   white-space: nowrap;
   user-select: none;
@@ -36,6 +65,21 @@
   transition:
     transform 140ms ease-out,
     box-shadow 140ms ease-out;
+}
+
+/* Bubble shape variants, chosen in settings. Circle (the default) needs no
+   class - it is the base rule above. */
+.gil-serp-variant-rounded .gil-serp-badge {
+  border-radius: 10px;
+}
+.gil-serp-variant-square .gil-serp-badge {
+  border-radius: 4px;
+}
+.gil-serp-variant-pill .gil-serp-badge {
+  width: auto;
+  min-width: 30px;
+  padding: 0 9px;
+  border-radius: 15px;
 }
 
 /* Numbers past 99 need the room; the pill keeps the same look. */
@@ -55,7 +99,7 @@
 }
 
 .gil-serp-badge--ad {
-  background: linear-gradient(160deg, #8f79ff 0%, #7a5cff 55%, #6141e6 100%);
+  background: linear-gradient(160deg, var(--gil-c-ad-1) 0%, var(--gil-c-ad-2) 55%, var(--gil-c-ad-3) 100%);
   box-shadow:
     0 1px 2px rgba(16, 10, 40, 0.24),
     0 4px 10px rgba(16, 10, 40, 0.2),
@@ -63,7 +107,7 @@
 }
 
 .gil-serp-badge--lsa {
-  background: linear-gradient(160deg, #7fb0ff 0%, #4a86e8 55%, #2f68c9 100%);
+  background: linear-gradient(160deg, var(--gil-c-lsa-1) 0%, var(--gil-c-lsa-2) 55%, var(--gil-c-lsa-3) 100%);
   box-shadow:
     0 1px 2px rgba(8, 20, 44, 0.24),
     0 4px 10px rgba(8, 20, 44, 0.2),
@@ -72,15 +116,23 @@
 
 .gil-serp-badge--local,
 .gil-serp-badge--maps {
-  background: linear-gradient(160deg, #4fa3e8 0%, #2b7fd4 55%, #1c63ab 100%);
+  background: linear-gradient(160deg, var(--gil-c-local-1) 0%, var(--gil-c-local-2) 55%, var(--gil-c-local-3) 100%);
   box-shadow:
     0 1px 2px rgba(8, 24, 44, 0.24),
     0 4px 10px rgba(8, 24, 44, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
+.gil-serp-badge--ai {
+  background: linear-gradient(160deg, var(--gil-c-ai-1) 0%, var(--gil-c-ai-2) 55%, var(--gil-c-ai-3) 100%);
+  box-shadow:
+    0 1px 2px rgba(28, 8, 44, 0.24),
+    0 4px 10px rgba(28, 8, 44, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 .gil-serp-badge--hit {
-  background: linear-gradient(160deg, #86a566 0%, #627d47 55%, #4c6337 100%);
+  background: linear-gradient(160deg, var(--gil-c-hit-1) 0%, var(--gil-c-hit-2) 55%, var(--gil-c-hit-3) 100%);
   box-shadow:
     0 0 0 3px rgba(98, 125, 71, 0.24),
     0 1px 2px rgba(14, 22, 8, 0.24),
@@ -89,7 +141,9 @@
 }
 
 /* Small uppercase tag under the circle, so a violet 2 is never mistaken for
-   an organic 2 at a glance. Organic carries no tag: a bare number is organic. */
+   an organic 2 at a glance. Organic now carries its own tag too: page and
+   page-relative position (e.g. p4.1), the breakdown of the true rank shown
+   in the circle above it. */
 .gil-serp-tag {
   position: absolute;
   left: 50%;
@@ -107,7 +161,7 @@
 
 .gil-serp-hit {
   background: rgba(98, 125, 71, 0.1);
-  outline: 2px solid #627d47;
+  outline: 2px solid var(--gil-c-hit-2);
   outline-offset: 4px;
   border-radius: 8px;
 }
@@ -116,7 +170,7 @@
    not a ranking of yours, and the two must never look the same at a glance.
    Dashed outline reinforces it for anyone who does not separate the hues. */
 .gil-serp-badge--mention {
-  background: linear-gradient(160deg, #e8a24f 0%, #d4832b 55%, #ab631c 100%);
+  background: linear-gradient(160deg, var(--gil-c-mention-1) 0%, var(--gil-c-mention-2) 55%, var(--gil-c-mention-3) 100%);
   box-shadow:
     0 0 0 3px rgba(212, 131, 43, 0.24),
     0 1px 2px rgba(44, 28, 8, 0.24),
@@ -126,7 +180,7 @@
 
 .gil-serp-mention {
   background: rgba(212, 131, 43, 0.09);
-  outline: 2px dashed #d4832b;
+  outline: 2px dashed var(--gil-c-mention-2);
   outline-offset: 4px;
   border-radius: 8px;
 }
@@ -276,28 +330,32 @@
   display: inline-block;
   padding: 1px 7px;
   border-radius: 9px;
-  background: #627d47;
+  background: var(--gil-c-hit-2);
   color: #fff;
   font-size: 11px;
   font-weight: 700;
 }
 
 .gil-serp-pos--mention {
-  background: #d4832b;
+  background: var(--gil-c-mention-2);
 }
 
 /* Chip colour matches the badge colour of the surface it came from. */
 .gil-serp-pos--ad {
-  background: #7a5cff;
+  background: var(--gil-c-ad-2);
 }
 
 .gil-serp-pos--lsa {
-  background: #4a86e8;
+  background: var(--gil-c-lsa-2);
 }
 
 .gil-serp-pos--local,
 .gil-serp-pos--maps {
-  background: #2b7fd4;
+  background: var(--gil-c-local-2);
+}
+
+.gil-serp-pos--ai {
+  background: var(--gil-c-ai-2);
 }
 
 .gil-serp-miss {

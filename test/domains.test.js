@@ -192,7 +192,7 @@ check(
 check(
   'at its true position',
   withHit.querySelector('#gil-serp-panel .gil-serp-pos').textContent,
-  '3'
+  '3 (p1.3)'
 );
 check(
   'the result itself is marked',
@@ -293,17 +293,17 @@ const chipsFor = (dom) =>
 check(
   'a domain appearing twice shows both positions',
   [...chipsFor('starbucks.com')].map((c) => c.textContent),
-  ['12', 'Map 1']
+  ['12 (p2.2)', 'Map 1']
 );
 check(
   'organic rank respects the page offset',
   [...chipsFor('timhortons.com')].map((c) => c.textContent),
-  ['14']
+  ['14 (p2.4)']
 );
 check(
   'an ad-only entry still shows, tagged as an ad',
   [...chipsFor('homedepot.com')].map((c) => c.textContent),
-  ['16', 'Ad 2']
+  ['16 (p2.6)', 'Ad 2']
 );
 check(
   'a local-only entry shows its map position',

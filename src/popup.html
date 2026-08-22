@@ -413,9 +413,15 @@
     <header>
       <span class="mark" aria-hidden="true"></span>
       <h1>GILMEDIA SERP COUNTER</h1>
-      <span class="ver">v2.1.0</span>
+      <span class="ver">v2.2.0</span>
       <span class="count" id="count"></span>
       <span class="spinner" id="loading" title="Loading your saved list"></span>
+      <a href="settings.html" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 1px solid var(--line); background: var(--surface-2); color: #ddd; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none;" title="Settings: colours, bubble style, font">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </a>
     </header>
 
     <label class="master" id="master">
@@ -526,6 +532,9 @@ Home Depot
       <label class="chk"><input type="checkbox" id="showAds" /><span class="toggle" aria-hidden="true"></span> Google Ads</label>
       <label class="chk"><input type="checkbox" id="showLocal" /><span class="toggle" aria-hidden="true"></span> Local pack / Maps</label>
       <label class="chk"><input type="checkbox" id="showLsa" /><span class="toggle" aria-hidden="true"></span> Local Services Ads</label>
+      <label class="chk" title="Citations inside Google's AI Overview and the dedicated AI Mode tab">
+        <input type="checkbox" id="showAi" /><span class="toggle" aria-hidden="true"></span> AI Overview / AI Mode
+      </label>
       <label class="chk" title="Results on other sites that carry your business name: LinkedIn, Indeed, ZoomInfo and the like">
         <input type="checkbox" id="showMentions" /><span class="toggle" aria-hidden="true"></span> Mentions on other sites
       </label>
